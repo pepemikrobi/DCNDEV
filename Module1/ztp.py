@@ -4,7 +4,7 @@ import re
 import json
 import time
 
-pod = 1
+pod = 9
 
 def get_model():
     show_version = cli('show version')
