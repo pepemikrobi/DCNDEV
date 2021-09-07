@@ -24,6 +24,7 @@ interface Loopback0
 !
 interface GigabitEthernet0/0/1
  dampening
+ no shutdown
  {% if router == '1' %}
  ip address 10.1{{pod}}.80.3 255.255.255.254
  {% else %}
