@@ -1,0 +1,100 @@
+# Device ZTP config
+from cli import configure, cli
+import re
+import json
+import time
+
+pod = {{ pod_no }}
+
+def get_model():
+    show_version = cli('show version')
+    try:
+        serial = re.search(r"Model Number\s+:\s+(\S+)", show_version).group(1)
+    except AttributeError:
+        serial = re.search(r"Processor board ID\s+(\S+)", show_version).group(1)
+    return serial
+
+def get_serial():
+    show_version = cli('show version')
+    
+    try:
+        serial = re.search(r"System Serial Number\s+:\s+(\S+)", show_version).group(1)
+    except AttributeError:
+        serial = re.search(r"Processor board ID\s+(\S+)", show_version).group(1)
+    return serial
+
+def main(): 
+    print(f"*** Model number: {get_model()}, serial number: {get_serial()} ***")
+
+    import cli
+
+    print("### Configure aaa, credentials and basic settings\n\n")
+
+    cli.configurep(["hostname {{ item.hostname }}"])
+    cli.configurep(["service timestamps debug datetime msec", "service timestamps log datetime msec", "end"])
+    cli.configurep(["ip domain name sdn.lab", "end"])
+    cli.configurep(["no ip domain lookup", "end"])
+    cli.configurep(["aaa new-model", "aaa authentication login default local", "aaa authorization exec default local", "aaa session-id common", "end"])
+    cli.configurep([f"username cliadmin privilege 15 password Admin{pod}sisko$", "end"])
+    cli.configurep([f"enable password Admin{pod}sisko$", "end"]) 
+    cli.configurep(["snmp-server community cisco RO", "end"])
+    cli.configurep([f"snmp-server community Admin{pod}sisko$ RW", "end"])
+
+    print("### Configure OOB interface and routing, disable Vlan1 SVI\n\n")
+
+    cli.configurep(["ip routing", "end"])
+
+    {% if item.device_type == 'r1' %}cli.configurep(["interface Loopback0", f"ip address 10.1{pod}.127.101 255.255.255.255", "end"])
+    {% elif item.device_type == 'r2' %}cli.configurep(["interface Loopback0", f"ip address 10.1{pod}.127.102 255.255.255.255", "end"])
+    {% else %}cli.configurep(["interface Loopback0", f"ip address 10.1{pod}.127.3 255.255.255.255", "end"])
+    {% endif %}
+
+    {% if item.device_type == 'sw3' %}cli.configurep(["int Vlan1","no ip address", "shut", "end"])
+    cli.configurep(["int gi1/0/11","no switchport", f"ip address 10.1{pod}.2.3 255.255.255.0", "no shut", "end"])
+    cli.configurep([f"ip route 0.0.0.0 0.0.0.0 10.1{pod}.2.254", "end"])
+    {% endif %}
+
+    print("### Configure temporary fabric routing\n\n")
+
+    {% if item.device_type == 'r1' %}sw_ip = "2"
+    gi_ip = "3"
+    isis_net = "49.0000.1111.1111.1111.00"
+    {% elif item.device_type == 'r2' %}sw_ip = "4"
+    gi_ip = "5"
+    isis_net = "49.0000.2222.2222.2222.00"
+    {% endif %}
+
+    {% if (item.device_type == 'r1') or (item.device_type == 'r2') %}cli.configurep(["interface Gi0/0/1", "description Fabric Physical Link", "no switchport", "dampening",\
+    f"ip address 10.1{pod}.80.{gi_ip} 255.255.255.254","ip lisp source-locator Loopback0","ip pim sparse-mode","ip router isis", \
+    "load-interval 30","bfd interval 100 min_rx 100 multiplier 3","no bfd echo","clns mtu 1400","isis network point-to-point","end"])
+    cli.configurep([f"ip route 0.0.0.0 0.0.0.0 10.1{pod}.80.{sw_ip} 200 name POD{pod}_SW3", "end"])
+    cli.configurep(["ip pim register-source Loopback0", "end"])
+    cli.configurep(["router isis", f"net {isis_net}", "domain-password sisko", "metric-style wide", "log-adjacency-changes", "nsf ietf", "bfd all-interfaces", "end"])
+
+    {% elif item.device_type == 'sw3' %}cli.configurep(["interface Gi1/0/23", "description Fabric Physical Link", "no switchport", "dampening",\
+    f"ip address 10.1{pod}.80.2 255.255.255.254","ip lisp source-locator Loopback0","ip pim sparse-mode","ip router isis", \
+    "load-interval 30","bfd interval 100 min_rx 100 multiplier 3","no bfd echo","clns mtu 1400","isis network point-to-point","end"])
+    
+    cli.configurep([f"interface Gi1/0/24", "description Fabric Physical Link", "no switchport", "dampening",\
+    f"ip address 10.1{pod}.80.4 255.255.255.254","ip lisp source-locator Loopback0","ip pim sparse-mode","ip router isis", \
+    "load-interval 30","bfd interval 100 min_rx 100 multiplier 3","no bfd echo","clns mtu 1400","isis network point-to-point","end"])
+    
+    cli.configurep([f"ip route 10.1{pod}.127.101 255.255.255.255 10.1{pod}.80.3 200 name POD{pod}_R1", "end"])
+    cli.configurep([f"ip route 10.1{pod}.127.102 255.255.255.255 10.1{pod}.80.5 200 name POD{pod}_R2", "end"])
+    
+    {% endif %}
+
+    print("### Configure misc. stuff\n\n")
+    cli.configurep([f"archive", "log config", "logging enable", "notify syslog contenttype plaintext", "end"])
+    cli.configurep([f"line con 0", "exec-timeout 0 0", "end"])
+    cli.executep("copy running-config startup-config")
+    
+    print("\n\n *** Executing show ip interface brief  *** \n\n")
+    cli_command = "sh ip int brief | e down"
+    cli.executep(cli_command)
+
+    print("\n\n *** ZTP Day0 Python Script Execution Complete *** \n\n")
+
+if __name__ in "__main__":
+    main()
+    
