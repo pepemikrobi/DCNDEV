@@ -64,7 +64,7 @@ def main():
     isis_net = "49.0000.2222.2222.2222.00"
     {% endif %}
 
-    {% if (item.device_type == 'r1') or (item.device_type == 'r2') %}cli.configurep(["interface Gi0/0/1", "description Fabric Physical Link", "no switchport", "dampening",\
+    {% if (item.device_type == 'r1') or (item.device_type == 'r2') %}cli.configurep(["interface Gi0/0/1", "description Fabric Physical Link", "dampening",\
     f"ip address 10.1{pod}.80.{gi_ip} 255.255.255.254","ip lisp source-locator Loopback0","ip pim sparse-mode","ip router isis", \
     "load-interval 30","bfd interval 100 min_rx 100 multiplier 3","no bfd echo","clns mtu 1400","isis network point-to-point","end"])
     cli.configurep([f"ip route 0.0.0.0 0.0.0.0 10.1{pod}.80.{sw_ip} 200 name POD{pod}_SW3", "end"])
