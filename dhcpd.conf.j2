@@ -1,0 +1,27 @@
+default-lease-time 1200;
+max-lease-time 3600;
+
+option tftp-server-address code 150 = ip-address;
+
+subnet 10.11.1.0 netmask 255.255.255.0 {
+  range 10.11.1.150 10.11.1.159;
+  option routers 10.11.1.254;
+}
+
+subnet 10.1{{ pod_no }}.2.0 netmask 255.255.255.0 {
+  range 10.1{{ pod_no }}.2.100 10.1{{ pod_no }}.2.199;
+  option routers 10.1{{ pod_no }}.2.254;
+}
+
+{% for item in ztp_devices %}
+host {{ item.hostname }} {
+    hardware ethernet {{ item.mac_address }};
+    {% if item.device_type == 'r1' %}fixed-address 10.1{{ pod_no }}.2.201;
+    {% elif item.device_type == 'r2' %}fixed-address 10.1{{ pod_no }}.2.202;
+    {% elif item.device_type == 'sw3' %}fixed-address 10.1{{ pod_no }}.2.203;
+    {% endif %}    
+    option routers 10.1{{ pod_no }}.2.254;
+    option host-name "{{ item.hostname }}";
+    option bootfile-name "http://10.11.1.10{{ pod_no }}:8888/{{ item.hostname }}.py";
+}
+{% endfor %}
