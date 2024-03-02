@@ -1,0 +1,62 @@
+---
+- name: "Set-up ZTP environment"
+  hosts: all
+  remote_user: podX
+  gather_facts: no
+  become: true
+  tasks:
+
+  - name: Set-up a DHCP server
+    ansible.builtin.template:
+      src: dhcpd.conf.j2
+      dest: /etc/dhcp/dhcpd.conf
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Restart a DHCP server
+    ansible.builtin.service:
+      name: isc-dhcp-server.service
+      state: restarted 
+
+  - name: Check DHCP server state
+    systemd:
+      name: isc-dhcp-server.service
+    register: dhcp_service_state
+
+  - name: Output DHCP service state
+    debug:
+      msg: 'DHCP State: {{ dhcp_service_state.status.ActiveState }}'
+
+  - name: Stop if DHCP service is not running
+    fail: 
+      msg: "The DHCP server failed to start"
+    when: dhcp_service_state.status.ActiveState != "active"
+
+  - name: Start an HTTP server
+    ansible.builtin.service:
+      name: apache2.service
+      state: started 
+
+  - name: Check if HTTP server is running
+    systemd:
+      name: apache2.service
+    register: http_service_state
+
+  - name: Output HTTP service state
+    debug:
+      msg: 'HTTP State: {{ http_service_state.status.ActiveState }}'
+
+  - name: Stop if HTTP service is not running
+    fail: 
+      msg: "The HTTP server failed to start"
+    when: http_service_state.status.ActiveState != "active"
+
+  - name: Compute initial device configs
+    template:
+      src: device.cfg.j2
+      dest: /var/www/html/{{ item.hostname }}.py
+      owner: root
+      group: root
+      mode: 0644
+    with_items: "{{ ztp_devices }}"

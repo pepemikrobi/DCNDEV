@@ -1,0 +1,6 @@
+all:
+  hosts:
+    podX-mgmt.sdn.lab: 
+
+  vars:
+    pod_no: X
