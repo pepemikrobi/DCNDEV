@@ -1,0 +1,25 @@
+all:
+  hosts:
+    podX-mgmt.sdn.lab: 
+
+  vars:
+    pod_no: X
+
+    ztp_devices:
+      - hostname: POD{{ pod_no }}_SW3 
+        device_type: "sw3"
+        mac_address: "aa:bb:cc:dd:ee:ff"
+        mgmt_ip_address: "10.1{{ pod_no }}.127.3"
+        gateway: "10.1{{ pod_no }}.2.254"
+
+      - hostname: POD{{ pod_no }}_R1 
+        device_type: "r1"
+        mac_address: "aa:bb:cc:dd:ee:ff"
+        mgmt_ip_address: "10.1{{ pod_no }}.127.101"
+        gateway: "10.1{{ pod_no }}.2.254"
+
+      - hostname: POD{{ pod_no }}_R2 
+        device_type: "r2"
+        mac_address: "aa:bb:cc:dd:ee:ff"
+        mgmt_ip_address: "10.1{{ pod_no }}.127.102"
+        gateway: "10.1{{ pod_no }}.2.254"
