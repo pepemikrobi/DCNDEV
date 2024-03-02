@@ -1,0 +1,67 @@
+devices:
+    PODX_SW1:
+        alias: "sw1"
+        type: "switch"
+        os: "iosxe"
+        platform: "cat9k"
+        credentials:
+            default:
+                username: "cliadmin"
+                password: "AdminXsisko$"
+        connections:
+            cli:
+                protocol: "ssh"
+                ip: "10.1X.xxx.xxx"
+    PODX_SW2:
+        alias: "sw2"
+        type: "switch"
+        os: "iosxe"
+        platform: "cat9k"
+        credentials:
+            default:
+                username: "cliadmin"
+                password: "AdminXsisko$"
+        connections:
+            cli:
+                protocol: "ssh"
+                ip: "10.1X.xxx.xxx"
+
+    PODX_SW3:
+        alias: "sw3"
+        type: "switch"
+        os: "iosxe"
+        platform: "cat9k"
+        credentials:
+            default:
+                username: "cliadmin"
+                password: "AdminXsisko$"
+        connections:
+            cli:
+                protocol: "ssh"
+                ip: "10.1X.127.3"
+
+    PODX_R1:
+        alias: "r1"
+        type: "router"
+        os: "iosxe"
+        credentials:
+            default:
+                username: "cliadmin"
+                password: "AdminXsisko$"
+        connections:
+            cli:
+                protocol: "ssh"
+                ip: "10.1X.127.101"
+
+    PODX_R2:
+        alias: "r2"
+        type: "router"
+        os: "iosxe"
+        credentials:
+            default:
+                username: "cliadmin"
+                password: "AdminXsisko$"
+        connections:
+            cli:
+                protocol: "ssh"
+                ip: "10.1X.127.102"
