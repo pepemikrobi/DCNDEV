@@ -1,0 +1,10 @@
+{
+    "type": "building",
+    "site": {
+        "building": {
+            "name": "Hector",
+            "parentName": "Global/Poland/Warszawa",
+            "address": "Gwiaździsta 19, 01-651 Warszawa, Poland"
+        }
+    }
+}

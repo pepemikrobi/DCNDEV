@@ -1,0 +1,9 @@
+{
+    "type": "area",
+    "site": {
+        "area": {
+            "name": "Warszawa",
+            "parentName": "Global/Poland"
+        }
+    }
+}
