@@ -1,0 +1,32 @@
+---
+- name: Deploy GitLab Runners
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+
+    - name: Install gitlab runner
+      ansible.builtin.shell: |
+        curl -LJO https://gitlab-runner-downloads.s3.amazonaws.com/latest/deb/gitlab-runner_amd64.deb
+        dpkg -i gitlab-runner_amd64.deb
+      args:
+        creates: /usr/bin/gitlab-runner
+
+    - name: Register gitlab docker runner
+      ansible.builtin.command: |
+        gitlab-runner register \
+        --non-interactive \
+        --url "https://pod{{ pod_no }}-mgmt.sdn.lab/" \
+        --token "{{ reg_token1 }}" \
+        --executor "docker" \
+        --docker-image alpine:latest
+      when: "'srv11' in inventory_hostname"
+
+    - name: Register gitlab shell runner
+      ansible.builtin.command: |
+        gitlab-runner register \
+        --non-interactive \
+        --url "https://pod{{ pod_no }}-mgmt.sdn.lab/" \
+        --token "{{ reg_token2 }}" \
+        --executor "shell"
+      when: "'srv12' in inventory_hostname"

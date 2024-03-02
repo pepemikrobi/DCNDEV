@@ -1,0 +1,9 @@
+---
+- name: Check DNAC state
+  hosts: pod5_dnac
+  gather_facts: no
+  tasks:
+  - name: Get devices info
+    cisco.dnac.network_device_info:
+      dnac_host: "{{dnac_host}}"
+      dnac_verify: "{{dnac_verify}}"

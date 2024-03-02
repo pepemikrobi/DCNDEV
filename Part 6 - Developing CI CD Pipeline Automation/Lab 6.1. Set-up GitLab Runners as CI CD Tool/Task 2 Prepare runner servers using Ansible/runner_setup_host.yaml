@@ -1,0 +1,62 @@
+---
+- name: Set-up GitLab Runners Servers
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+
+    - name: Update cache
+      ansible.builtin.apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+
+    - name: Install system packages
+      ansible.builtin.apt:
+        pkg:
+          - apt-transport-https
+          - software-properties-common
+          - ca-certificates
+          - gnupg-agent
+          - pip
+          - virtualenv
+          - build-essential
+          - ansible
+
+    - name: Add Docker GPG apt Key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      ansible.builtin.apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu jammy stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      ansible.builtin.apt:
+        name: docker-ce
+        state: latest
+        update_cache: true
+
+    - name: Install Docker Module for Python
+      ansible.builtin.pip:
+        name: docker
+
+    - name: Add gitlab-runner user to docker group
+      ansible.builtin.user:
+        name: gitlab-runner
+        append: yes
+        groups: docker
+
+    - name: Copy CA ca-certificates
+      ansible.builtin.copy:
+        src: "/home/pod{{ pod_no }}/SDN_CA.crt"
+        dest: "/usr/local/share/ca-certificates/"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Update certificate registry
+      ansible.builtin.shell:
+        update-ca-certificates

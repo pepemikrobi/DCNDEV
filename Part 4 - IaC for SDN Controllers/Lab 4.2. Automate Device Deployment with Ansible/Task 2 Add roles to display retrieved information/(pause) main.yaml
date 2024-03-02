@@ -1,0 +1,5 @@
+---
+# tasks file for roles/pause
+- name: Pause for input
+  ansible.builtin.pause:
+    prompt: "Press ENTER to {{ message }} or press CTRL+C than A to abort"

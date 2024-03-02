@@ -1,0 +1,98 @@
+---
+- name: DNAC REST Get token
+  ansible.builtin.uri:
+    url: "https://{{ dnac_host }}/dna/system/api/v1/auth/token"
+    force_basic_auth: true
+    user: admin
+    password: "Admeen{{ pod }}sisko"
+    method: POST
+  register: out
+
+- name: Get token
+  ansible.builtin.set_fact:
+    api_token: "{{ out.json.Token }}"
+
+- name: Display token
+  ansible.builtin.debug:
+    msg: "Token {{ api_token }}"
+
+- name: Check whether LAN Auto is not running
+  cisco.dnac.lan_automation_status_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+  register: lan_auto_out
+
+- name: Retrieve last status data
+  ansible.builtin.set_fact:
+    lan_auto_action: "{{ lan_auto_out.dnac_response.response[0].action }}"
+    lan_auto_creationTime: "{{ lan_auto_out.dnac_response.response[0].creationTime }}"
+    lan_auto_discoveredDeviceList: "{{ lan_auto_out.dnac_response.response[0].discoveredDeviceList }}"    
+    lan_auto_status: "{{ lan_auto_out.dnac_response.response[0].status }}"
+
+- name: Display current LAN Auto status
+  ansible.builtin.debug:
+    msg:
+      - "{{ lan_auto_action }}"
+      - "{{ lan_auto_creationTime }}"
+      - "{{ lan_auto_discoveredDeviceList }}"
+      - "{{ lan_auto_status }}"
+
+- name: Abort if LAN Auto is currently running
+  fail:
+    msg: "LAN Automation is currently running, aborting."
+  when: lan_auto_action == "START" or "Progress" in lan_auto_status
+
+- name: DNAC REST Create LAN Auto session
+  ansible.builtin.uri:
+    url: "https://{{ dnac_host }}/dna/intent/api/v1/lan-automation"
+    body_format: "json"
+    method: POST
+    status_code: [202]
+
+    headers:
+      X-Auth-Token: "{{ api_token }}"
+    body: |
+      [
+        {
+          "discoveredDeviceSiteNameHierarchy": "{{ site_name }}",
+          "isisDomainPwd": "{{ isis_password }}",
+            "primaryDeviceManagmentIPAddress": "{{ seed_switch | replace('X', pod) }}",
+            "primaryDeviceInterfaceNames": {{ seed_interfaces }},
+            "mulitcastEnabled": "true",
+            "ipPools":
+            [
+              {
+                "ipPoolName": "{{ underlay_pool_name }}",
+                "ipPoolRole": "MAIN_POOL"
+              }
+            ]
+        }
+      ]
+    
+  register: out
+
+- name: Wait 20s to retrieve the status
+  ansible.builtin.pause:
+    seconds: 20
+
+- name: Check LAN Auto status
+  cisco.dnac.lan_automation_status_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+  register: lan_auto_out
+
+- name: Retrieve last status data
+  ansible.builtin.set_fact:
+    lan_auto_action: "{{ lan_auto_out.dnac_response.response[0].action }}"
+    lan_auto_creationTime: "{{ lan_auto_out.dnac_response.response[0].creationTime }}"
+    lan_auto_discoveredDeviceList: "{{ lan_auto_out.dnac_response.response[0].discoveredDeviceList }}"
+    lan_auto_status: "{{ lan_auto_out.dnac_response.response[0].status }}"
+
+- name: Display current LAN Auto status
+  ansible.builtin.debug:
+    msg:
+      - "{{ lan_auto_action }}"
+      - "{{ lan_auto_creationTime }}"
+      - "{{ lan_auto_discoveredDeviceList }}"
+      - "{{ lan_auto_status }}"
+

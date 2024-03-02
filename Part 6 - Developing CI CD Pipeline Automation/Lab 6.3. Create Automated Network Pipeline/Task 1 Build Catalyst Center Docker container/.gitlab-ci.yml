@@ -1,0 +1,27 @@
+variables:
+  IMAGE_NAME_DNAC: $CI_REGISTRY_IMAGE/dnac  
+  IMAGE_TAG_DNAC: "1.0"
+
+stages:
+  - build
+
+build_image:
+  stage: build
+  tags:
+    - shell
+  script:
+    - echo $CI_COMMIT_BRANCH
+    - echo $CI_REGISTRY_IMAGE
+    - echo $IMAGE_NAME_DNAC
+    - docker build -t $IMAGE_NAME_DNAC:$IMAGE_TAG_DNAC Docker/DNAC/.
+
+push_image:
+  stage: build
+  needs:
+    - build_image
+  tags:
+    - shell
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker push $IMAGE_NAME_DNAC:$IMAGE_TAG_DNAC

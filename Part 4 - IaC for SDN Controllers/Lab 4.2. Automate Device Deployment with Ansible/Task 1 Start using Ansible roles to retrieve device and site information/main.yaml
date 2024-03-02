@@ -1,0 +1,21 @@
+---
+- name: Get site info
+  cisco.dnac.site_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    name: "{{ site_name }}"
+  register: site
+
+- name: Get fabric site ID
+  ansible.builtin.set_fact:
+    fabric_site_id: "{{ site.dnac_response.response[0].id }}"
+
+- name: Get devices info
+  cisco.dnac.network_device_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+  register: devices
+
+- name: Get devices list
+  ansible.builtin.set_fact:
+    device_list: "{{ devices.dnac_response.response }}"

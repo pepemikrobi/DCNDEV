@@ -1,0 +1,48 @@
+---
+- name: Pause for input
+  ansible.builtin.pause:
+    prompt: "Continue to check underlay IP pool?"
+
+- name: Retrieve existing underlay pool
+  cisco.dnac.reserve_ip_subpool_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    siteId: "{{ fabric_site_id }}"
+  register: site_pools
+
+- name: Set default found pool state to false
+  ansible.builtin.set_fact:
+    underlay_pool_present: False
+
+- name: Check for existing underlay pool
+  ansible.builtin.set_fact:
+    underlay_pool_present: True
+    underlay_pool_id: "{{ item.id }}"
+  with_items: 
+    - "{{ site_pools.dnac_response.response }}"
+  when: item.groupName == underlay_pool_name
+  loop_control:
+    label: "Found pool {{ item.groupName }}"
+
+- name: Print found underlay state
+  ansible.builtin.debug:
+    var: underlay_pool_present
+    
+- name: Pause for input
+  ansible.builtin.pause:
+    prompt: "Continue to reserve underlay IP pool?"
+  when: not underlay_pool_present
+
+- name: Reserve underlay pool
+  cisco.dnac.reserve_ip_subpool_create:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    siteId: "{{ fabric_site_id }}"
+    name: "{{ underlay_pool_name }}"
+    type: "LAN"
+    ipv4GlobalPool: "{{ global_pool_name | replace('X',pod) }}"
+    ipv4Prefix: true
+    ipv4Subnet: "{{ underlay_subnet | replace('X',pod) }}"
+    ipv4PrefixLength: "{{ underlay_prefix_length }}"
+    ipv4GateWay: "{{ underlay_gateway | replace('X',pod) }}"
+  when: not underlay_pool_present

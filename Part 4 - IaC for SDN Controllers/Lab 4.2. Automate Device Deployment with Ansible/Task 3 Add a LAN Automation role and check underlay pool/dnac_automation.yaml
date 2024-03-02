@@ -1,0 +1,14 @@
+- name: Provision Fabric Devices
+  hosts: pod5_dnac
+  connection: local
+  gather_facts: false
+  vars:
+    - site_name: "global/Poland/Warszawa/Hector"
+  roles:
+    - get_info
+    - role: pause
+      message: "display gathered information"
+    - display_info
+    - role: pause
+      message: "set up LAN Automation"
+    - lan_auto_prep

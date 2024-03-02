@@ -1,0 +1,6 @@
+dnac:
+  hosts:
+    podX_dnac:
+      dnac_host: podX-dnac.sdn.lab
+      dnac_username: admin
+      dnac_verify: False

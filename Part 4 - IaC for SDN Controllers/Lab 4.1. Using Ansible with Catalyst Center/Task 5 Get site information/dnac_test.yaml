@@ -1,0 +1,29 @@
+---
+- name: Check DNAC state
+  hosts: pod5_dnac
+  gather_facts: no
+  tasks:
+  - name: Get devices info
+    cisco.dnac.network_device_info:
+      dnac_host: "{{dnac_host}}"
+      dnac_verify: "{{dnac_verify}}"
+    register: out_network
+
+  - name: Display devices
+    debug:
+      msg: "Hostname: {{item.hostname}}, IP: {{item.managementIpAddress}}, Location: {{item.location}}"
+    with_items:
+      - "{{out_network.dnac_response.response}}"
+    loop_control:
+      label: "Item"
+
+  - name: Get site info
+    cisco.dnac.site_info:
+      dnac_host: "{{dnac_host}}"
+      dnac_verify: "{{dnac_verify}}"
+      name: "Global/Poland/Warszawa/Hector"
+    register: out_site
+
+  - name: Display site
+    ansible.builtin.debug:
+      msg: "Site ID: {{out_site.dnac_response.response[0].id}}"

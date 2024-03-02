@@ -1,0 +1,12 @@
+---
+- name: Display site
+  ansible.builtin.debug:
+    msg: "Site ID: {{ fabric_site_id }}"
+
+- name: Display devices
+  ansible.builtin.debug:
+    msg: "Hostname: {{ item.hostname }}, IP: {{ item.managementIpAddress }}, Location: {{ item.location }}"
+  with_items:
+    - "{{ device_list }}"
+  loop_control:
+    label: "Item"

@@ -1,0 +1,13 @@
+all:
+  vars:
+    pod_no: X
+    reg_token1: "<first token value>"
+    reg_token2: "<second token value>"
+
+  hosts:
+    "podX-srv11.sdn.lab":
+      ansible_host: "pod{{ pod_no }}-srv11.sdn.lab"
+      username: "pod{{ pod_no }}"
+    "podX-srv12.sdn.lab":
+      ansible_host: "pod{{ pod_no }}-srv12.sdn.lab"
+      username: "pod{{ pod_no }}"
