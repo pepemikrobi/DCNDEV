@@ -1,4 +1,4 @@
-# DCNDEV (Developing Cisco Networks DevOps Style) Training Repository
+# DCNDEV (Developing with Cisco Networks DevOps Style) Training Repository
 
 ## Topics:
 - Labs based on Cisco DNA Center, Catalyst 9300, Cisco ACI
