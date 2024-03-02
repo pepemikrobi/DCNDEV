@@ -26,3 +26,6 @@
     - role: pause
       message: "set up LAN Automation"
     - lan_auto_prep
+    - role: pause
+      message: "start LAN Automation"
+    - lan_auto_start
