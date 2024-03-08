@@ -1,0 +1,12 @@
+---
+apic:
+  tenants:
+    - name: podX_tenant
+
+      application_profiles: 
+        - name: APP1
+          endpoint_groups:
+            - name: EPG1
+              bridge_domain: BD1
+            - name: EPG2
+              bridge_domain: BD2

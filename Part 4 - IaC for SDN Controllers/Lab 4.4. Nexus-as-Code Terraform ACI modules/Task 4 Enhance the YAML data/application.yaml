@@ -1,0 +1,31 @@
+---
+apic:
+  tenants:
+    - name: podX_tenant
+
+      application_profiles: 
+        - name: APP1
+          endpoint_groups:
+            - name: EPG1
+              bridge_domain: BD1
+              physical_domains:
+                - phys
+              static_ports:
+                - node_id: 101
+                  port: 5
+                  vlan: 1001
+                - node_id: 102
+                  port: 5
+                  vlan: 1001
+            - name: EPG2
+              bridge_domain: BD2
+              physical_domains:
+                - phys
+              static_ports:
+                - node_id: 101
+                  port: 15
+                  vlan: 1001
+                - node_id: 102
+                  port: 15
+                  vlan: 1001
+
