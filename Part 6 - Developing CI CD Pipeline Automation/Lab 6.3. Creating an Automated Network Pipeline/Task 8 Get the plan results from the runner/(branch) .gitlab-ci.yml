@@ -1,0 +1,103 @@
+variables:
+  IMAGE_NAME_DNAC: $CI_REGISTRY_IMAGE/dnac  
+  IMAGE_NAME_ACI: $CI_REGISTRY_IMAGE/aci
+  IMAGE_TAG_DNAC: "1.0"
+  IMAGE_TAG_ACI: "1.0"
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_MESSAGE == "Update .gitlab-ci.yml file"
+      when: never
+    - when: always
+
+# Here a .gitlab-ci.yml file from the main branch is included
+# It provides build_image and push_image jobs in the build stage
+include:
+  - project: $CI_PROJECT_PATH
+    ref: main
+    file: .gitlab-ci.yml
+
+# Here an object cache is created to store .terraform sub-folder contents
+# between container runs. With that, Terraform initialization 
+# and the providers and modules downloaded will be persistent between runs
+# In this case the cache is stored locally in the runnner where
+# the container was executed
+.dependencies_cache:
+  cache:
+    key: TF_NETASCODE
+    paths:
+      - "TF_NETASCODE/.terraform"
+    policy: pull
+
+# A new validate stage has been added
+stages:
+  - build
+  - validate
+  - plan
+
+# The tf_validate job in validate stage is used to check the HCL syntax
+tf_validate:
+  stage: validate
+  # The Docker image is required, the tag selects the docker runner
+  # and the Docker image name is also provided
+  needs:
+    - push_image
+  tags:
+    - docker
+  image: $IMAGE_NAME_ACI:$IMAGE_TAG_ACI
+  # Here the reference to the cache is used
+  extends: .dependencies_cache
+  cache:
+    policy: pull-push
+  # Before the main script starts a Terraform initialization is performed
+  before_script:
+    - echo $CI_PIPELINE_SOURCE
+    - echo $CI_COMMIT_BRANCH
+    - cd TF_NETASCODE
+    - pwd
+    - chmod +x .init.sh
+    - ./.init.sh
+  # The main script here just invokes terraform validate
+  script:
+    - terraform validate
+  # The job should only start when the pipeline trigger is push
+  # and the branch where commit was performed matches the regex
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^feature.*/
+
+# The tf_validate job in validate stage is used to check the HCL syntax
+tf_plan:
+  stage: plan
+  # The Docker image is required, the tag selects the docker runner
+  # and the Docker image name is also provided
+  needs:
+    - push_image
+  tags:
+    - docker
+  image: $IMAGE_NAME_ACI:$IMAGE_TAG_ACI
+  # Here the reference to the cache is used
+  extends: .dependencies_cache
+  cache:
+    policy: pull-push
+  # Before the main script starts a Terraform initialization is performed
+  # And the Terraform shell variables are set based on GitLab variables
+  before_script:
+    - echo $CI_PIPELINE_SOURCE
+    - echo $CI_COMMIT_BRANCH
+    - cd TF_NETASCODE
+    - pwd
+    - chmod +x .init.sh
+    - ./.init.sh
+    - export TF_VAR_aci_username=${ACI_USERNAME}
+    - export TF_VAR_aci_password=${ACI_PASSWORD}
+    - export TF_VAR_aci_url=${ACI_URL}
+  # The main script here just invokes terraform plan
+  # Save output to the file and then display
+  script:
+    - terraform plan -out ./output.tfplan
+    - terraform show ./output.tfplan
+
+  # The job should only start when the pipeline trigger is push
+  # and the branch where commit was performed matches the regex
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^feature.*/

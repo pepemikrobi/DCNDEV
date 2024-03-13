@@ -1,0 +1,29 @@
+---
+apic:
+  tenants:
+    - name: podX_tenant
+
+      vrfs:
+        - name: VRF1
+        - name: VRF2
+
+      bridge_domains:
+        - name: BD1
+          vrf: VRF1
+          subnets:
+          - ip: 10.101.1.254/24
+        - name: BD2
+          vrf: VRF2
+          subnets:
+          - ip: 10.101.2.254/24
+        - name: BD3
+          vrf: VRF2
+          subnets:
+          - ip: 10.102.3.254/24
+
+    - name: podX_tenant_test
+
+      vrfs:
+        - name: VRF1
+        - name: VRF2
+
