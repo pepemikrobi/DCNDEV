@@ -1,5 +1,5 @@
 - name: Provision Fabric Devices
-  hosts: pod5_dnac
+  hosts: podX_dnac
   connection: local
   gather_facts: false
   vars:

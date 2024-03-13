@@ -1,5 +1,5 @@
 resource "aci_tenant" "PODX_Tenant1" {
-    name = "pod5_tenant1"
+    name = "podX_tenant1"
 }
 
 # resource "aci_vrf" "VRF1" {

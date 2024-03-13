@@ -1,3 +1,3 @@
 dnac_username = "admin"
-dnac_url = "https://pod5-dnac.sdn.lab"
+dnac_url = "https://podX-dnac.sdn.lab"
 pod = "X"

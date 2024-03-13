@@ -1,6 +1,6 @@
 ---
 - name: Check DNAC state
-  hosts: pod5_dnac
+  hosts: podX_dnac
   gather_facts: no
   tasks:
   - name: Get devices info
