@@ -8,7 +8,7 @@ data "vsphere_host" "esxi_host" {
 }
 
 data "vsphere_resource_pool" "pool" {
-    name          = format("pod%s_evpn", var.pod)
+    name          = format("pod%s_dcndev", var.pod)
     datacenter_id = data.vsphere_datacenter.datacenter.id
 }
 
