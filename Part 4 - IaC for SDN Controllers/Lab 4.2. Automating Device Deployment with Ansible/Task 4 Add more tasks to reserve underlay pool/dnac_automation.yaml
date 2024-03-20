@@ -3,8 +3,14 @@
   connection: local
   gather_facts: false
   vars:
-    - site_name: "global/Poland/Warszawa/Hector"
-    - pod: X
+    - site_name: "Global/Poland/Warszawa/Hector"
+    - pod: X    
+    - underlay_pool_name: "UNDERLAY"    
+    - global_pool_name: "10.1X.64.0/18"
+    - underlay_subnet: "10.1X.64.0"
+    - underlay_prefix_length: "20"
+    - underlay_gateway: "10.1X.64.1"
+
   roles:
     - get_info
     - role: pause

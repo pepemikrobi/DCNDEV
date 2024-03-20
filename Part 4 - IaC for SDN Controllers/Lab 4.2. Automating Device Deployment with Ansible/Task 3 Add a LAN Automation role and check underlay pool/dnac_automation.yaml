@@ -3,12 +3,13 @@
   connection: local
   gather_facts: false
   vars:
-    - site_name: "global/Poland/Warszawa/Hector"
+    - site_name: "Global/Poland/Warszawa/Hector"
+    - underlay_pool_name: "UNDERLAY"
   roles:
     - get_info
     - role: pause
       message: "display gathered information"
     - display_info
     - role: pause
-      message: "set up LAN Automation"
+      message: "set-up LAN Automation"
     - lan_auto_prep

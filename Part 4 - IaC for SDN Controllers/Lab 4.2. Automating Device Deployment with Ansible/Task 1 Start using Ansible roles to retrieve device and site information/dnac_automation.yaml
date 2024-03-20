@@ -1,8 +1,8 @@
 - name: Provision Fabric Devices
-  hosts: pod5_dnac
+  hosts: podX_dnac
   connection: local
   gather_facts: false
   vars:
-    - site_name: "global/Poland/Warszawa/Hector"
+    - site_name: "Global/Poland/Warszawa/Hector"
   roles:
     - get_info

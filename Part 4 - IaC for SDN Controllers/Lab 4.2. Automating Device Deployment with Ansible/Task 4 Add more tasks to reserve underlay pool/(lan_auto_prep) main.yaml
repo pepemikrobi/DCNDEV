@@ -1,8 +1,4 @@
 ---
-- name: Pause for input
-  ansible.builtin.pause:
-    prompt: "Continue to check underlay IP pool?"
-
 - name: Retrieve existing underlay pool
   cisco.dnac.reserve_ip_subpool_info:
     dnac_host: "{{ dnac_host }}"
@@ -30,7 +26,7 @@
     
 - name: Pause for input
   ansible.builtin.pause:
-    prompt: "Continue to reserve underlay IP pool?"
+    prompt: "Continue to reserve the underlay IP pool?"
   when: not underlay_pool_present
 
 - name: Reserve underlay pool

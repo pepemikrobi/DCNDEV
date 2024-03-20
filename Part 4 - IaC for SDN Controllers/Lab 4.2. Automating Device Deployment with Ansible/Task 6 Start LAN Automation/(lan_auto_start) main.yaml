@@ -22,20 +22,27 @@
     dnac_verify: "{{ dnac_verify }}"
   register: lan_auto_out
 
-- name: Retrieve last status data
+- name: Set initial LAN Auto status variables
+  ansible.builtin.set_fact:
+    lan_auto_action: ""
+    lan_auto_status: ""
+
+- name: Retrieve last status data only if it was running before
   ansible.builtin.set_fact:
     lan_auto_action: "{{ lan_auto_out.dnac_response.response[0].action }}"
     lan_auto_creationTime: "{{ lan_auto_out.dnac_response.response[0].creationTime }}"
-    lan_auto_discoveredDeviceList: "{{ lan_auto_out.dnac_response.response[0].discoveredDeviceList }}"    
+    lan_auto_discoveredDeviceList: "{{ lan_auto_out.dnac_response.response[0].discoveredDeviceList }}"
     lan_auto_status: "{{ lan_auto_out.dnac_response.response[0].status }}"
+  when: lan_auto_out.dnac_response.response | length > 0
 
-- name: Display current LAN Auto status
+- name: Display current LAN Auto status only if it was running before
   ansible.builtin.debug:
     msg:
       - "{{ lan_auto_action }}"
       - "{{ lan_auto_creationTime }}"
       - "{{ lan_auto_discoveredDeviceList }}"
       - "{{ lan_auto_status }}"
+  when: lan_auto_out.dnac_response.response | length > 0
 
 - name: Abort if LAN Auto is currently running
   fail:
