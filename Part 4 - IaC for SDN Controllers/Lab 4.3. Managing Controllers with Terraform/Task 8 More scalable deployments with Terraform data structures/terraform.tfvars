@@ -3,10 +3,10 @@ aci_url = "https://apic1.sdn.lab"
 
 vrfs = {
     "VRF1" = {
-        tenant = "pod5_tenant1"
+        tenant = "podX_tenant1"
     }
     "VRF2" = {
-        tenant = "pod5_tenant1"
+        tenant = "podX_tenant1"
     }
 }
 

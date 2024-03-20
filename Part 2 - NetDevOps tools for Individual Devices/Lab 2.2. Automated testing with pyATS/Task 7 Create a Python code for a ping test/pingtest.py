@@ -39,5 +39,5 @@ class PingTest (aetest.Testcase):
 if __name__ == "__main__":
     print (f"Staring ping test{'.'*10}")
     
-    my_testbed = topology.loader.load("pod5.yaml")
+    my_testbed = topology.loader.load("podX.yaml")
     ping_test = aetest.main(testbed=my_testbed, destinations=test_destinations)

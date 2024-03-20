@@ -21,7 +21,7 @@ apic:
           subnets:
           - ip: 10.102.3.254/24
 
-    - name: pod5_tenant_test
+    - name: podX_tenant_test
 
       vrfs:
         - name: VRF1
