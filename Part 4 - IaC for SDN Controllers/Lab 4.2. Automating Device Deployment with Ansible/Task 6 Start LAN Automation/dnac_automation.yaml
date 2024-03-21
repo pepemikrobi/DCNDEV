@@ -3,7 +3,7 @@
   connection: local
   gather_facts: false
   vars:
-    - site_name: "global/Poland/Warszawa/Hector"
+    - site_name: "Global/Poland/Warszawa/Hector"
     - pod: X
     - underlay_pool_name: "UNDERLAY"
     - global_pool_name: "10.1X.64.0/18"
