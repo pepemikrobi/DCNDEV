@@ -60,3 +60,20 @@ resource "aci_application_epg" "EPG2" {
     application_profile_dn = aci_application_profile.APP1.id
     relation_fv_rs_bd = aci_bridge_domain.BDs["BD2"].id
 }
+
+module "APP1_EPG1" {
+    source = "./modules/app_epg"
+    tenant_id = aci_tenant.PODX_Tenant1.id
+    app_name = "APP1"
+    epg_name = "EPG1"
+    bd_id = aci_bridge_domain.BDs["BD1"].id
+} 
+
+module "APP1_EPG2" {
+    source = "./modules/app_epg"
+    tenant_id = aci_tenant.PODX_Tenant1.id
+    app_name = "APP1"
+    epg_name = "EPG2"
+    bd_id = aci_bridge_domain.BDs["BD2"].id
+}
+
