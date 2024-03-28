@@ -33,7 +33,6 @@ include:
 stages:
   - build
   - validate
- 
 
 # The tf_validate job in validate stage is used to check the HCL syntax
 tf_validate:
