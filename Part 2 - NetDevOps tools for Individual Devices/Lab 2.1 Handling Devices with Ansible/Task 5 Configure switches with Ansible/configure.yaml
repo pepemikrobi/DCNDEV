@@ -1,0 +1,22 @@
+---
+- name: "Playbook to make switch configurations"
+  hosts: podX
+  connection: network_cli
+  gather_facts: no
+  tasks:
+
+    - name: "Create additional loopback interface"
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ item.name }}"
+            description: "[Configured by Ansible]"
+            enabled: true
+      loop: "{{ loopbacks }}"
+
+    - name: "Configure IP address on additional loopback interfaces"
+      cisco.ios.ios_l3_interfaces:
+        config:
+          - name: "{{ item.name }}"
+            ipv4:
+              - address: "{{ item.ip_address }}"
+      loop: "{{ loopbacks }}"

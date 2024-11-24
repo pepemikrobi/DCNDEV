@@ -1,0 +1,31 @@
+all: 
+  vars:
+    ansible_user: cliadmin
+    ansible_connection: network_cli
+    ansible_network_os: ios
+    ansible_become: yes
+    ansible_become_method: enable
+
+  children:
+    podX:
+      hosts:
+        "10.1X.127.3":
+        "10.1X.127.101":
+        "10.1X.127.102":
+    podY:
+      hosts:
+        "10.1Y.127.3":
+        "10.1Y.127.101":
+        "10.1Y.127.102":
+    routers:
+      hosts:
+        "10.1X.127.101":
+        "10.1X.127.102":
+        "10.1Y.127.101":    
+        "10.1Y.127.102":
+    switches:
+      hosts:
+        "10.1X.127.3":
+        "10.1Y.127.3":   
+  
+

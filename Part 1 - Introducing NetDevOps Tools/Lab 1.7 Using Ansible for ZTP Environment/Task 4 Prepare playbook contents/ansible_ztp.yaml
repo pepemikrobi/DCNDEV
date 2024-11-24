@@ -6,6 +6,13 @@
   become: true
   tasks:
 
+  - name: Install required packages
+    apt:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - isc-dhcp-server
+
   - name: Set-up a DHCP server
     ansible.builtin.template:
       src: dhcpd.conf.j2
@@ -14,10 +21,11 @@
       group: root
       mode: 0644
 
-  - name: Restart a DHCP server
+  - name: Restart the DHCP server
     ansible.builtin.service:
       name: isc-dhcp-server.service
       state: restarted 
+      enabled: yes
 
   - name: Check DHCP server state
     systemd:

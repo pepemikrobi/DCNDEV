@@ -1,0 +1,25 @@
+---
+- name: "A playbook to generate a network inventory report"
+  hosts: all
+  connection: network_cli
+  tasks:
+
+    - name: "Get facts"
+      cisco.ios.ios_facts:
+      register: output
+
+    - name: "Display all host variables"
+      debug:
+        var: output
+
+    - name: "Create reports folder"
+      file:
+        path: "./reports"
+        state: "directory"
+      delegate_to: localhost
+
+    - name: "Generate a report"
+      template:
+        src: "report.j2"
+        dest: "reports/{{ inventory_hostname }}.txt"
+      delegate_to: localhost

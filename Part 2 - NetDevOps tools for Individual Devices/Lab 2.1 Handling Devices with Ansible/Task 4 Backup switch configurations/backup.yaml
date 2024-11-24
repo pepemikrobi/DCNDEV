@@ -1,0 +1,19 @@
+---
+- name: "Playbook to backup switch configuration"
+  hosts: all
+  connection: ansible.netcommon.network_cli
+  gather_facts: no
+  tasks:
+
+    - name: "Create backup folder"
+      file:
+        path: "./backups"
+        state: "directory"
+      delegate_to: localhost
+
+    - name: "Backup the configuration"
+      cisco.nxos.nxos_config:
+        backup: yes
+        backup_options:
+          dir_path: "backups"
+          filename: "backup_{{ inventory_hostname }}_{{ lookup('pipe', 'date +%Y-%m-%d-%H-%M-%S') }}.txt"
