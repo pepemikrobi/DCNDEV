@@ -13,6 +13,8 @@ RUN . /root/ansible/bin/activate && \
     pip install --upgrade pip && \
     pip install requests-toolbelt && \
     pip install urllib3 && \
+    pip install requests && \
+    pip install jmespath && \        
     pip install ansible && \
     pip install dnacentersdk && \
     pip install pyats[full] && \ 
