@@ -43,6 +43,17 @@
       ansible.builtin.pip:
         name: docker
 
+    - name: Add GitLab Repository
+      ansible.builtin.shell:
+        curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
+
+    - name: Install GitLab Runner Package
+      ansible.builtin.apt:
+        name: gitlab-runner=17.4.2-1
+        state: present
+        force: true
+        update_cache: true
+        
     - name: Add gitlab-runner user to docker group
       ansible.builtin.user:
         name: gitlab-runner
