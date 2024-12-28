@@ -15,11 +15,13 @@ subnet 10.1{{ pod_no }}.2.0 netmask 255.255.255.0 {
 
 {% for item in ztp_devices %}
 host {{ item.hostname }} {
-    hardware ethernet {{ item.mac_address }};
-    {% if item.device_type == 'r1' %}fixed-address 10.1{{ pod_no }}.2.201;
-    {% elif item.device_type == 'r2' %}fixed-address 10.1{{ pod_no }}.2.202;
-    {% elif item.device_type == 'sw3' %}fixed-address 10.1{{ pod_no }}.2.203;
-    {% endif %}    
+{% set mac = item.cisco_mac_address | replace('.', '') %}
+{% set mac = mac[:2] + ':' + mac[2:4] + ':' + mac[4:6] + ':' + mac[6:8] + ':' + mac[8:10] + ':' + mac[10:12] %}
+    hardware ethernet {{ mac }};
+{% if item.device_type == 'r1' %}    fixed-address 10.1{{ pod_no }}.2.201;
+{% elif item.device_type == 'r2' %}    fixed-address 10.1{{ pod_no }}.2.202;
+{% elif item.device_type == 'sw3' %}    fixed-address 10.1{{ pod_no }}.2.203;
+{% endif %}
     option routers 10.1{{ pod_no }}.2.254;
     option host-name "{{ item.hostname }}";
     option bootfile-name "http://10.11.1.10{{ pod_no }}:8888/{{ item.hostname }}.py";

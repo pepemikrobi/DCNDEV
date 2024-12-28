@@ -46,7 +46,7 @@ if __name__ == "__main__":
     headers["x-auth-token"] = token
     #print (token)
     ise_data = dnac_get_aaa_servers(host)
-    print (ise_data.json())
+    #print (ise_data.json())
     #print (json.dumps(ise_data.json(), indent=4))
     ise_table = PrettyTable(["FQDN", "IP Address", "Trust State", "Type", "Role"])
     for item in ise_data.json()["response"][0]["ciscoIseDtos"]:
