@@ -31,6 +31,7 @@ all:
             ip_address: "100.1.1.102/32" 
       vars:
         ansible_password: "{{ my_pod_password }}"
+        ansible_become_password: "{{ my_pod_password }}"        
 
     podY:
       hosts:
@@ -43,20 +44,14 @@ all:
     routers:
       hosts:
         "10.1X.127.101":
-          ansible_password: "{{ my_pod_password }}"
         "10.1X.127.102":
-          ansible_password: "{{ my_pod_password }}"
         "10.1Y.127.101":    
-          ansible_password: "{{ other_pod_password }}"
         "10.1Y.127.102":
-          ansible_password: "{{ other_pod_password }}"
           
     switches:
       hosts:
         "10.1X.127.3":
-          ansible_password: "{{ my_pod_password }}"
         "10.1Y.127.3":   
-          ansible_password: "{{ other_pod_password }}"
   
 
 

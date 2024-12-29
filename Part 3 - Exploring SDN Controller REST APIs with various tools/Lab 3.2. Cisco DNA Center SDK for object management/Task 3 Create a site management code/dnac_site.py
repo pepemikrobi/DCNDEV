@@ -1,5 +1,5 @@
 # DNA Center SDK example for designing site parameters
-# A part of Developing with Cisco Networks DevOps Style (DCNDEV) Course
+# A part of Developing with Cisco SDN Networks DevOps Style (DCNDEV) Course
 # Author: robert.slaski@gmail.com
 
 import time
@@ -7,6 +7,7 @@ import glob
 import sys
 import json
 import yaml
+import logging
 from rich import print
 from rich.console import Console
 from rich.table import Table
@@ -19,6 +20,7 @@ table = Table(show_header=True, header_style="bold green")
 global dnac
 global steps
 apply_settings = True
+system_debug = False
 
 # A header option for synchronous API run
 SYNC =  { "__runsync" : True }
@@ -53,7 +55,7 @@ def get_connected(pod):
     fqdn = f'https://pod{pod}-dnac.sdn.lab'
     console.print(f"[bold yellow] Retrieving token from {fqdn}...", end="")
     try:
-        dnac = DNACenterAPI(base_url=fqdn, username='admin', verify=False)
+        dnac = DNACenterAPI(base_url=fqdn, username='admin', verify=False, debug=system_debug)
     except AccessTokenError as err:
         console.print(f'[blink bold red] ERROR: Token invalid!')
         exit(1)
@@ -334,6 +336,12 @@ def ask(step, msg):
 
 if __name__ == "__main__":
 
+    # Set-up logging
+    logger = logging.getLogger('dnac')
+    logger.setLevel(logging.DEBUG)
+    logging_handler = logging.StreamHandler()
+
+    # Starting here
     steps = 10
     console.print(f"\n[reverse green] DNAC Site script starting {'(non-config)' if apply_settings==False else ''}")
 
@@ -341,18 +349,18 @@ if __name__ == "__main__":
     console.print(f"[bold yellow] Parse input data...")
     pod = parse_input(sys.argv)
 
-    # Create API object
+    # Step 1: Create API object
     ask (1, "Proceed to API object creation?")
     console.print("\n[bold yellow] Creating API object...")
     dnac = get_connected(pod)
 
-    # Create sites
+    # Step 2: Create sites
     if (apply_settings):
         ask (2, "Proceed to create sites?")
         files = "sites/*.json"
         create_sites_from_files(files)
 
-    # Get building site ID for fabric
+    # Step 3: Get building site ID for fabric
     ask (3, "Proceed to retrieve fabric site ID?")
     fabric_site_name = "Global/Poland/Warszawa/Hector"
     console.print(f"[bold yellow] Get site {fabric_site_name} info...", end="")
@@ -360,7 +368,7 @@ if __name__ == "__main__":
     fabric_site_id = site.response[0].id
     console.print (f"[yellow] Fabric site ID: {fabric_site_id}\n")
     
-    # Create global IP pools
+    # Step 4: Create global IP pools
     if (apply_settings):    
         ask (4, "Proceed to create global IP pools?")
         globalIpPoolUnderlay, globalIpPoolOverlay, globalIpPoolOverlay6 = setup_data(pod)
@@ -371,13 +379,13 @@ if __name__ == "__main__":
         }
         create_global_pools(globalIpPools)
 
-    # Display global IP pools
+    # Step 5: Display global IP pools
     ask (5, "Proceed to display a table od IP pools?")
     console.print(f"[bold yellow] Get global pools...", end="")
     global_pools = get_global_pools().response
     display_global_pools(global_pools)
 
-    # Reserve pools at site
+    # Step 6: Reserve pools at site
     if (apply_settings):    
         ask (6, "Proceed to reserve site IP pools?")
         console.print(f"[bold yellow] Reserve pools at site {fabric_site_name}...")
@@ -385,25 +393,25 @@ if __name__ == "__main__":
         reserve_pool("132", pod, globalIpPoolOverlay, globalIpPoolOverlay6, fabric_site_id)
         reserve_pool("133", pod, globalIpPoolOverlay, globalIpPoolOverlay6, fabric_site_id)
 
-    # Create network settings for a site
+    # Step 7: Create network settings for a site
     if (apply_settings):        
         ask (7, "Proceed to create network settings for fabric site?")
         console.print(f"[bold yellow] Create network settings for site {fabric_site_name}...")
         create_network_settings(fabric_site_id)
 
-    # Create network credentials
+    # Step 8: Create network credentials
     if (apply_settings):        
         ask (8, "Proceed to create network device credentials?")
         console.print(f"[bold yellow] Create network credentials...")
         create_network_credentials(pod)
 
-    # Get credential IDs
+    # Step 9: Get credential IDs
     ask (9, "Proceed to retrieve network device credential IDs?")
     console.print(f"[yellow] Get network credentials IDs...")
     credentials_cli_id, credentials_snmp_rw_id, credentials_snmp_ro_id = get_network_credentials_ids()
     console.print(f"CLI: {credentials_cli_id}, SNMP_RW: {credentials_snmp_rw_id}, SNMP_RO: {credentials_snmp_ro_id}")
 
-    # Dump IDs as YAML
+    # Step 10: Dump IDs as YAML
     ask (10, "Proceed to dump IDs as YAML?")
     console.print(f"[bold yellow] Dumping object IDs as YAML...")
     dump_ids (fabric_site_id, credentials_cli_id, credentials_snmp_rw_id, credentials_snmp_ro_id)
