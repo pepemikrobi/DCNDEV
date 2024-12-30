@@ -5,7 +5,7 @@
 
 - name: Display devices
   ansible.builtin.debug:
-    msg: "Hostname: {{ item.hostname }}, IP: {{ item.managementIpAddress }}, Location: {{ item.location }}"
+    msg: "Hostname: {{ item.hostname }}, IP: {{ item.managementIpAddress }}, Platform: {{ item.platformId }}"
   with_items:
     - "{{ device_list }}"
   loop_control:

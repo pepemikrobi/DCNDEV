@@ -354,6 +354,8 @@ if __name__ == "__main__":
     console.print("\n[bold yellow] Creating API object...")
     dnac = get_connected(pod)
 
+    logging.getLogger('dnacentersdk').addHandler(logging_handler)
+
     # Step 2: Create sites
     if (apply_settings):
         ask (2, "Proceed to create sites?")

@@ -19,6 +19,7 @@ table = Table(show_header=True, header_style="bold green")
 global dnac1
 global steps
 apply_settings = True
+system_debug = False
 
 # A header option for synchronous API run
 SYNC =  { "__runsync" : True }
@@ -53,7 +54,7 @@ def get_connected(pod):
     fqdn = f'https://pod{pod}-dnac.sdn.lab'
     console.print(f"[bold yellow] Retrieving token from {fqdn}...", end="")
     try:
-        dnac = DNACenterAPI(base_url=fqdn, username='admin', verify=False)
+        dnac = DNACenterAPI(base_url=fqdn, username='admin', verify=False, debug=system_debug)
     except AccessTokenError as err:
         console.print(f'[blink bold red] ERROR: Token invalid!')
         exit(1)
@@ -147,14 +148,14 @@ def retrieve_device_details():
     for device in device_id_list:
         device = dnac.devices.get_device_by_id(id=device)
         table.add_row(
-          device.response.hostname,
-          device.response.macAddress,
-          device.response.serialNumber,
-          device.response.softwareType,
-          device.response.type,
-          device.response.managementIpAddress,
-          device.response.family,
-          device.response.platformId
+            device.response.hostname,
+            device.response.macAddress,
+            device.response.serialNumber,
+            device.response.softwareType,
+            device.response.type,
+            device.response.managementIpAddress,
+            device.response.family,
+            device.response.platformId
         )
     console.print(table)
 
@@ -200,6 +201,12 @@ def ask(step, msg):
 
 if __name__ == "__main__":
 
+    # Set-up logging
+    logger = logging.getLogger('dnac')
+    logger.setLevel(logging.DEBUG)
+    logging_handler = logging.StreamHandler()
+
+    # Starting here
     steps = 6
     console.print(f"\n[reverse green] DNAC discovery script starting {'(non-config)' if apply_settings==False else ''}")
 
@@ -207,19 +214,21 @@ if __name__ == "__main__":
     console.print(f"[bold yellow] Parse input data...")
     pod = parse_input(sys.argv)
 
-    # Create API object
+    # Step 1: Create API object
     ask (1, "Proceed to API object creation?")
     console.print("\n[bold yellow] Creating API object...")
     dnac = get_connected(pod)
 
-    # Read IDs from YAML file
+    logging.getLogger('dnacentersdk').addHandler(logging_handler)
+
+    # Step 2: Read IDs from YAML file
     filename = 'dnac_ids.yaml'
     ask (2, f"Proceed to read fabric and credential IDs from YAML file {filename}?")
     console.print(f"[bold yellow] Reading object IDs from YAML file {filename}...")
     fabric_site_id, credentials_cli_id, credentials_snmp_rw_id, credentials_snmp_ro_id = read_ids(filename)
     console.print (f" Fabric site ID: {fabric_site_id}, CLI ID: {credentials_cli_id}, SNMP RW ID: {credentials_snmp_rw_id}, SNMP RO ID: {credentials_snmp_ro_id}")
     
-    # Initiate discovery and check status
+    # Step 3: Initiate discovery and check status
     if (apply_settings):
         ask (3, f"Proceed to initialize device discovery?")
         console.print(f"[bold yellow] Initializing device discovery...")
@@ -234,18 +243,18 @@ if __name__ == "__main__":
             devices_list = disco_response.deviceIds.split(",")
             console.print(f"[bold yellow] {len(devices_list)} devices discovered")
 
-    # Save discovered device IPs
+    # Step 4: Save discovered device IPs
     if (apply_settings):
         ask (4, f"Proceed to save discovered device IPs?")
         console.print(f"[yellow] Save discovered device IPs...")
         save_discovered_devices(devices_list)
     
-    # Load device IPs and retrieve device details
+    # Step 5: Load device IPs and retrieve device details
     ask (5, f"Proceed to retrieving discovered device details?")
     console.print(f"[yellow] Get discovered device details...")
     devices = retrieve_device_details()
 
-    # Add devices to site
+    # Step 6: Add devices to site
     if (apply_settings):
         ask (6, f"Proceed to add discovered devices to fabric site?")
         console.print(f"[yellow] Add discovered devices to site...")
