@@ -4,12 +4,10 @@
   gather_facts: false
   vars:
     - site_name: "Global/Poland/Warszawa/Hector"
-    - pod: X    
-    - underlay_pool_name: "UNDERLAY"    
-    - global_pool_name: "10.1X.64.0/18"
-    - underlay_subnet: "10.1X.64.0"
-    - underlay_prefix_length: "20"
-    - underlay_gateway: "10.1X.64.1"
+    - pod: X
+
+  vars_files:
+    - ip_pool_data.yaml
 
   roles:
     - get_info
@@ -17,5 +15,8 @@
       message: "display gathered information"
     - display_info
     - role: pause
-      message: "set up LAN Automation"
-    - lan_auto_prep
+      message: "assign credentials"
+    - assign_credentials
+    - role: pause
+      message: "Reserve IP sub-pools"
+    - reserve_ip_pools
