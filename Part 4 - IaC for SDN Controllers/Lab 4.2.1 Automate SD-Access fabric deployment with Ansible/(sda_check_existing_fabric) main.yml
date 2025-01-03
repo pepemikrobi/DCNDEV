@@ -1,0 +1,7 @@
+---
+# tasks file for roles/sda_check_existing_fabric
+
+- name: Check if a fabric exists
+  ansible.builtin.set_fact:
+    create_fabric: "{{ false | default(true) }}"
+  when: sda_fabric_sites_count_info.dnac_response.response.count > 0
