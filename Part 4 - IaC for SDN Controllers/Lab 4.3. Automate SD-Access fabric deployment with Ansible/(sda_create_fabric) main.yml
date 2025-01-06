@@ -1,8 +1,9 @@
 ---
 # tasks file for roles/sda_create_fabric
 
-# update wired telemetry settings first
-# Ansible / DNAC SDK is crappy and doesn't support this, so we have to use the REST API directly
+# Update wired telemetry settings first
+# Ansible / DNAC SDK is crappy and doesn't handle this properly,
+# so we have to use the REST API directly
 
 - name: REST API Get token
   ansible.builtin.uri:
@@ -65,7 +66,6 @@
     msg: "Telemetry enabled: {{ telemetry_settings.dnac_response.response.wiredDataCollection.enableWiredDataCollection }}"
 
 # Now let's finally create our fabric
-
 - name: Create SDA fabric
   cisco.dnac.sda_fabric_sites:
     dnac_host: "{{ dnac_host }}"
@@ -82,11 +82,15 @@
   ansible.builtin.debug:
     var: sda_fabric_response
 
+- name: Pause for 10 seconds to allow fabric creation to complete
+  ansible.builtin.pause:
+    seconds: 10
+
 - name: Get SDA fabric task status
   cisco.dnac.task_info:
     dnac_host: "{{ dnac_host }}"
     dnac_verify: "{{ dnac_verify }}"
-    taskId: "{{ sda_fabric_response.json.response.taskId }}"
+    taskId: "{{ sda_fabric_response.dnac_response.taskId }}"
   register: task_status_response
 
 - name: Fail if unsuccessful
@@ -94,14 +98,12 @@
     msg: "Task failed: {{ task_status_response.dnac_response.response.progress }}"
   when: task_status_response.dnac_response.response.isError == "true"
 
-- name: Get current fabric information
-  cisco.dnac.sda_fabric_site_info:
+- name: Get SDA fabric sites details
+  cisco.dnac.sda_fabric_sites_info:
     dnac_host: "{{ dnac_host }}"
     dnac_verify: "{{ dnac_verify }}"
-    siteNameHierarchy: "{{ site_name }}"
-  register: fabric_info_response
-  failed_when: '"stop" in fabric_info_response.sda_fabric_site_info_response.success'
+  register: sites_info_result
 
-- name: Display Fabric Info
+- name: Display SDA fabric sites info
   ansible.builtin.debug:
-    var: fabric_info_response
+    msg: "{{ sites_info_result.dnac_response.response }}"

@@ -1,7 +1,17 @@
 ---
 # tasks file for roles/sda_check_existing_fabric
 
-- name: Check if a fabric exists
+# Check if any fabric sites exist
+- name: Get all SDA Fabric sites count info
+  cisco.dnac.sda_fabric_sites_count_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+  register: sda_fabric_sites_count_info
+
+- name: Display SDA Fabric Sites Count Info
+  ansible.builtin.debug:
+    msg: "Fabric sites configured: {{ sda_fabric_sites_count_info.dnac_response.response.count }}"
+
+- name: If a fabric exists, set a flag to skip fabric creation
   ansible.builtin.set_fact:
-    create_fabric: "{{ false | default(true) }}"
-  when: sda_fabric_sites_count_info.dnac_response.response.count > 0
+    create_fabric: "{{ false if sda_fabric_sites_count_info.dnac_response.response.count > 0 else true }}"

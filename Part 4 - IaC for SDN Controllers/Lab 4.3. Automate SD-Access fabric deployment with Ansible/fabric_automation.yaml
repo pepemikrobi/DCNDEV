@@ -1,42 +1,48 @@
 - name: Provision SDA Fabric
-  hosts: pod4_dnac
+  hosts: podX_dnac
   connection: local
   gather_facts: false
   vars:
     - site_name: "Global/Poland/Warszawa/Hector"
-    - pod: 5
+    - pod: X
     - fabric_config:
-      - name: POD{{ pod }}_SW1"
-        mgmt_ip: "10.1{{ pod }}.127.1"
-        roles:
-          - "EDGE_NODE"
+        - name: "POD{{ pod }}_SW1"
+          mgmt_ip: "10.1{{ pod }}.127.1"
+          roles:
+            - "EDGE_NODE"
 
-      - name: POD{{ pod }}_SW2"
-        mgmt_ip: "10.1{{ pod }}.127.2"
-        roles:
-          - "EDGE_NODE"
+        - name: "POD{{ pod }}_SW2"
+          mgmt_ip: "10.1{{ pod }}.127.2"
+          roles:
+            - "EDGE_NODE"
 
-      - name: POD{{ pod }}_R1"
-        mgmt_ip: "10.1{{ pod }}.127.101"
-        roles:
-          - "CONTROL_PLANE_NODE"
-          - "BORDER_NODE"
-        as_number: "6550{{ pod }} | int"
+        - name: "POD{{ pod }}_R1"
+          mgmt_ip: "10.1{{ pod }}.127.101"
+          roles:
+            - "CONTROL_PLANE_NODE"
+            - "BORDER_NODE"
+          as_number: "6550{{ pod }}"
 
-      - name: POD{{ pod }}_R2"
-        mgmt_ip: "10.1{{ pod }}.127.102"
-        roles:
-          - "CONTROL_PLANE_NODE"
-          - "BORDER_NODE"
-        as_number: "6550{{ pod }} | int"
+        - name: "POD{{ pod }}_R2"
+          mgmt_ip: "10.1{{ pod }}.127.102"
+          roles:
+            - "CONTROL_PLANE_NODE"
+            - "BORDER_NODE"
+          as_number: "6550{{ pod }}"
 
   roles:
     - get_info
-    # - role: pause
-    #   message: "start LAN Automation"
+    - role: pause
+      message: "prepare SD-Access fabric data"
     - sda_prepare_data
+    - role: pause
+      message: "check for existing SD-Access fabric and create if necessary"
     - sda_check_existing_fabric
     - role: sda_create_fabric
       when: create_fabric
+    - role: pause
+      message: "provision fabric devices"
     - sda_provision_devices
+    - role: pause
+      message: "assign device SD-Access roles"
     - sda_assign_roles

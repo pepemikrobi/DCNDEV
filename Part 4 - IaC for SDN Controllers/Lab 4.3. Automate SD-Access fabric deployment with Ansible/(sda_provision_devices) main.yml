@@ -46,4 +46,3 @@
       - networkDeviceId: "{{ item }}"
         siteId: "{{ fabric_site_id }}"
   loop: "{{ not_provisioned_devices_ids }}"
-
