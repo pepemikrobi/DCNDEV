@@ -54,9 +54,13 @@
   ansible.builtin.debug:
     msg: "{{ device_result.dnac_response.response }}"
 
-- name: Stop if all devices are already assigned
-  ansible.builtin.fail:
+- name: Will stop if all devices are assigned
+  ansible.builtin.debug:
     msg: "All devices have already been assigned their roles, stopping."
+  when: sda_device_count | int >= 4
+
+- name: Stop if all devices have already been already assigned
+  ansible.builtin.meta: end_play
   when: sda_device_count | int >= 4
 
 
