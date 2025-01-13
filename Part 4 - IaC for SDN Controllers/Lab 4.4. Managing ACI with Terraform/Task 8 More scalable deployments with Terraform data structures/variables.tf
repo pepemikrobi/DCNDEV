@@ -13,20 +13,20 @@ variable "aci_url" {
 variable "vrfs" {
     type = map (
         object(
-        {
-            tenant = string
-        }
+            {
+                tenant = string
+            }
         )
     )
+}
 
-    }
-    variable "bridge_domains" {
+variable "bridge_domains" {
     type = map (
         object(
-        {
-            vrf = string
-            subnet = string
-        }
+            {
+                vrf = string
+                subnet = string
+            }
         )
     )
 }
