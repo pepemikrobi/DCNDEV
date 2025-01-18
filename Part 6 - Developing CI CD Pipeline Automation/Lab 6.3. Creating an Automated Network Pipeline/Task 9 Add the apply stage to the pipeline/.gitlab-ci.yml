@@ -133,8 +133,6 @@ tf_apply:
   stage: apply
   # The Docker image is required, the tag selects the docker runner
   # and the Docker image name is also provided
-  needs:
-    - tf_plan
   tags:
     - docker
   image: $IMAGE_NAME_ACI:$IMAGE_TAG_ACI
