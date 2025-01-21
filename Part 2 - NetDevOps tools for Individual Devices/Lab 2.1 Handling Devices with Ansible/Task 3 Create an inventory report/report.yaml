@@ -6,6 +6,7 @@
 
     - name: "Get facts"
       cisco.ios.ios_facts:
+        gather_subset: all      
       register: output
 
     - name: "Display all host variables"
