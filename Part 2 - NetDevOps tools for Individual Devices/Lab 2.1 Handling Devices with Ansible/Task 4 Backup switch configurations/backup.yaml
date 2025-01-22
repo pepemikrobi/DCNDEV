@@ -12,7 +12,7 @@
       delegate_to: localhost
 
     - name: "Backup the configuration"
-      cisco.nxos.nxos_config:
+      cisco.ios.ios_config:
         backup: yes
         backup_options:
           dir_path: "backups"
