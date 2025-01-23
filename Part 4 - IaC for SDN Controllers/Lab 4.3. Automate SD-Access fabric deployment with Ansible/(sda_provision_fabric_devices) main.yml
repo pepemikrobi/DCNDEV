@@ -24,12 +24,12 @@
 - name: Print a list of provisioned SDA devices
   ansible.builtin.debug:
     msg: "{{ fabric_device_data }}"
-  loop: "{{ provisioned_devices_ids }}"
+  loop: "{{ provisioned_devices_ids | default([]) }}"
 
 # Now compute the list of devices that are not yet provisioned
 - name: Create a list of not yet provisioned device IDs
   ansible.builtin.set_fact:
-    not_provisioned_devices_ids: "{{ fabric_device_data | json_query('[*].dev_id') | difference(provisioned_devices_ids) }}"
+    not_provisioned_devices_ids: "{{ fabric_device_data | json_query('[*].dev_id') | difference(provisioned_devices_ids | default([])) }}"
 
 - name: Print a list of not provisioned SDA devices
   ansible.builtin.debug:
