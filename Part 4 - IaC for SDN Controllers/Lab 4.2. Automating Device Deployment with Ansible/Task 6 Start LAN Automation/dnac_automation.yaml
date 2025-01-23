@@ -17,6 +17,9 @@
         sw1_serial: "xxxxxxxxxxx"
         sw2_serial: "xxxxxxxxxxx" 
 
+  vars_files:
+    - ip_pool_data.yaml
+    
   roles:
     - get_info
     - role: pause
