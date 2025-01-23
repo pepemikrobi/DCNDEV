@@ -42,7 +42,7 @@
       when: create_fabric
     - role: pause
       message: "provision fabric devices"
-    - sda_provision_devices
+    - sda_provision_fabric_devices
     - role: pause
       message: "assign device SD-Access roles"
     - sda_assign_roles
