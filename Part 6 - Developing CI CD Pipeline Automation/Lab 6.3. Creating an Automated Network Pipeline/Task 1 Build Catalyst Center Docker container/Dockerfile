@@ -15,8 +15,8 @@ RUN . /root/ansible/bin/activate && \
     pip install urllib3 && \
     pip install requests && \
     pip install jmespath && \        
-    pip install ansible && \
-    pip install dnacentersdk && \
+    pip install ansible==10.7 && \
+    pip install dnacentersdk==2.7.7 && \
     pip install pyats[full] && \ 
     pip install ansible-lint && \ 
     ansible-galaxy collection install cisco.dnac
