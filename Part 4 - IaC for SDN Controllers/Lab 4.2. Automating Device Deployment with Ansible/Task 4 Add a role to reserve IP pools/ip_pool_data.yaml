@@ -1,0 +1,21 @@
+- pools:
+  # existing pools
+  - name: NET131
+  - name: NET132
+  - name: NET133
+  
+  # a pool for LAN Automation underlay
+  - name: "UNDERLAY"
+    global_pool_prefix: "10.1{{ pod }}.64.0/18"
+    subnet: "10.1{{ pod }}.64.0"
+    prefix_length: "20"
+    gateway: "10.1{{ pod }}.64.1"
+    dhcp:
+    - "10.16.2.3"
+    - "10.16.2.6"
+
+  # a pool for SW1/SW2 management loopbacks
+  - name: "MGMT_LOOPBACK"
+    global_pool_prefix: "10.1{{ pod }}.64.0/18"
+    subnet: "10.1{{ pod }}.127.0"
+    prefix_length: "24"

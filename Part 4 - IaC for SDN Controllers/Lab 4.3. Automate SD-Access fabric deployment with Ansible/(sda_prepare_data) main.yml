@@ -1,0 +1,35 @@
+---
+# tasks file for roles/sda_prepare_data
+
+# (debug) Display devices IPs and IDs
+- name: Display key-value pair of IPs and IDs
+  ansible.builtin.debug:
+    msg: "IP {{ item.ip }}, ID {{ item.id }}"
+  vars:
+    devices_id: "{{ device_list | json_query('[*].{ip: managementIpAddress, id: id}') }}"
+  loop: "{{ devices_id }}"
+  loop_control:
+    label: "Device"
+
+# Create data structure for fabric devices
+- name: Create fabric config
+  ansible.builtin.set_fact:
+    fabric_device_data: |
+      {{
+        fabric_device_data | default([]) +
+        [
+          _dev | selectattr('mgmt_ip', 'equalto', item)
+          | map ('combine', fabric_config | selectattr('mgmt_ip', 'equalto', item) | json_query('[*].{roles: roles}'))
+          | first
+        ]
+      }}
+  vars:
+    _dev: "{{ device_list | json_query('[*].{mgmt_ip: managementIpAddress, dev_id: id}') }}"
+  loop: "{{ fabric_config | json_query('[*].mgmt_ip') }}"
+  loop_control:
+    label: "Set for device {{ item }}"
+
+- name: Print fabric device data
+  ansible.builtin.debug:
+    msg: "{{ item }}"
+  loop: "{{ fabric_device_data }}"

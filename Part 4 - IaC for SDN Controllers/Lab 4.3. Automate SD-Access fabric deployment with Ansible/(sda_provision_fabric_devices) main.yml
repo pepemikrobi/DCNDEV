@@ -1,0 +1,48 @@
+---
+# tasks file for roles/sda_provision_devices
+
+# Retrieve device IDs already provisioned in Catalyst Center SDA fabric
+- name: Get SDA Provisioned Devices
+  cisco.dnac.sda_provision_devices_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+  register: sda_provisioned_devices_result
+
+- name: Print raw SDA Provisioned Devices
+  ansible.builtin.debug:
+    var: sda_provisioned_devices_result
+
+- name: Build a list of provisioned SDA devices
+  ansible.builtin.set_fact:
+    provisioned_devices_ids: "{{ provisioned_devices_ids | default([]) + fabric_device_data | json_query(q) | map(attribute='dev_id') }}"
+  vars:
+    q: "[?contains(dev_id, '{{ item.networkDeviceId }}')]"
+  loop: "{{ sda_provisioned_devices_result.dnac_response.response }}"
+  loop_control:
+    label: "Device: {{ item.networkDeviceId }}"
+
+- name: Print a list of provisioned SDA devices
+  ansible.builtin.debug:
+    msg: "{{ fabric_device_data }}"
+  loop: "{{ provisioned_devices_ids | default([]) }}"
+
+# Now compute the list of devices that are not yet provisioned
+- name: Create a list of not yet provisioned device IDs
+  ansible.builtin.set_fact:
+    not_provisioned_devices_ids: "{{ fabric_device_data | json_query('[*].dev_id') | difference(provisioned_devices_ids | default([])) }}"
+
+- name: Print a list of not provisioned SDA devices
+  ansible.builtin.debug:
+    msg: "{{ not_provisioned_devices_ids }}"
+
+# And provision missing devices
+- name: Provision not yet provisioned devices
+  cisco.dnac.sda_provision_devices:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    state: present
+    id: "{{ fabric_site_id }}"
+    payload:
+      - networkDeviceId: "{{ item }}"
+        siteId: "{{ fabric_site_id }}"
+  loop: "{{ not_provisioned_devices_ids }}"

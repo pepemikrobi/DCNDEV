@@ -1,0 +1,57 @@
+all: 
+  vars:
+    ansible_user: cliadmin
+    ansible_connection: network_cli
+    ansible_network_os: ios
+    ansible_become: yes
+    ansible_become_method: enable
+    my_pod_password: "{{ lookup('env', 'MY_POD_PASSWORD') }}"
+    other_pod_password: "{{ lookup('env', 'OTHER_POD_PASSWORD') }}"
+
+  children:
+    podX:
+      hosts:
+        "10.1X.127.3":
+          loopbacks:
+          - name: Loopback1000
+            ip_address: "100.0.1.3/32"
+          - name: Loopback1001
+            ip_address: "100.1.1.3/32"   
+        "10.1X.127.101":
+          loopbacks:
+          - name: Loopback1000
+            ip_address: "100.0.1.101/32"
+          - name: Loopback1001
+            ip_address: "100.1.1.101/32" 
+        "10.1X.127.102":
+          loopbacks:
+          - name: Loopback1000
+            ip_address: "100.0.1.102/32"
+          - name: Loopback1001
+            ip_address: "100.1.1.102/32" 
+      vars:
+        ansible_password: "{{ my_pod_password }}"
+        ansible_become_password: "{{ my_pod_password }}"        
+
+    podY:
+      hosts:
+        "10.1Y.127.3":
+        "10.1Y.127.101":
+        "10.1Y.127.102":
+      vars:
+        ansible_password: "{{ other_pod_password }}"
+
+    routers:
+      hosts:
+        "10.1X.127.101":
+        "10.1X.127.102":
+        "10.1Y.127.101":    
+        "10.1Y.127.102":
+          
+    switches:
+      hosts:
+        "10.1X.127.3":
+        "10.1Y.127.3":   
+  
+
+

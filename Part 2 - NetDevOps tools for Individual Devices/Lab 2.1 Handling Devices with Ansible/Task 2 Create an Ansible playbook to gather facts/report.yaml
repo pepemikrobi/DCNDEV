@@ -1,0 +1,14 @@
+---
+- name: "A playbook to generate a network inventory report"
+  hosts: all
+  connection: network_cli
+  tasks:
+
+    - name: "Get facts"
+      cisco.ios.ios_facts:
+        gather_subset: interfaces 
+      register: output
+
+    - name: "Display all host variables"
+      debug:
+        var: output

@@ -1,0 +1,109 @@
+---
+# tasks file for roles/sda_create_fabric
+
+# Update wired telemetry settings first
+# Ansible / DNAC SDK is crappy and doesn't handle this properly,
+# so we have to use the REST API directly
+
+- name: REST API Get token
+  ansible.builtin.uri:
+    url: "https://{{ dnac_host }}/dna/system/api/v1/auth/token"
+    force_basic_auth: true
+    user: "{{ dnac_username }}"
+    password: "{{ lookup('env', 'DNAC_PASSWORD') }}"
+    method: POST
+  register: get_token_response
+
+- name: Retrieve token from response
+  ansible.builtin.set_fact:
+    api_token: "{{ get_token_response.json.Token }}"
+
+- name: Display the token
+  ansible.builtin.debug:
+    msg: "REST API Token {{ api_token }}"
+
+- name: REST API call to update fabric site telemetry settings
+  ansible.builtin.uri:
+    url: "https://{{ dnac_host }}/dna/intent/api/v1/sites/{{ fabric_site_id }}/telemetrySettings"
+    body_format: "json"
+    method: PUT
+    status_code: [202]
+    headers:
+      X-Auth-Token: "{{ api_token }}"
+    body: |
+      {
+          "wiredDataCollection": {
+              "enableWiredDataCollection": "true"
+          },
+          "wirelessTelemetry": {
+              "enableWirelessTelemetry": "true"
+          }
+      }
+
+  register: telemetry_update_response
+
+- name: Get telemetry update task status
+  cisco.dnac.task_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    taskId: "{{ telemetry_update_response.json.response.taskId }}"
+  register: task_status_response
+
+- name: Fail if unsuccessful
+  ansible.builtin.fail:
+    msg: "Task failed: {{ task_status_response.dnac_response.response.progress }}"
+  when: task_status_response.dnac_response.response.isError == "true"
+
+- name: Get telemetry settings
+  cisco.dnac.sites_telemetry_settings_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    id: "{{ fabric_site_id }}"
+  register: telemetry_settings
+
+- name: Print telemetry settings
+  ansible.builtin.debug:
+    msg: "Telemetry enabled: {{ telemetry_settings.dnac_response.response.wiredDataCollection.enableWiredDataCollection }}"
+
+# Now let's finally create our fabric
+- name: Create SDA fabric
+  cisco.dnac.sda_fabric_sites:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    state: present
+    id: "{{ fabric_site_id }}"
+    payload:
+      - isPubSubEnabled: true
+        siteId: "{{ fabric_site_id }}"
+        authenticationProfileName: "Closed Authentication"
+  register: sda_fabric_response
+
+- name: Debug SDA Fabric creation
+  ansible.builtin.debug:
+    var: sda_fabric_response
+
+- name: Pause for 10 seconds to allow fabric creation to complete
+  ansible.builtin.pause:
+    seconds: 10
+
+- name: Get SDA fabric task status
+  cisco.dnac.task_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    taskId: "{{ sda_fabric_response.dnac_response.taskId }}"
+  register: task_status_response
+
+- name: Fail if unsuccessful
+  ansible.builtin.fail:
+    msg: "Task failed: {{ task_status_response.dnac_response.response.progress }}"
+  when: task_status_response.dnac_response.response.isError == "true"
+
+- name: Get SDA fabric sites details
+  cisco.dnac.sda_fabric_sites_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+  register: sites_info_result
+
+- name: Display SDA fabric sites info
+  ansible.builtin.debug:
+    msg: "{{ sites_info_result.dnac_response.response }}"

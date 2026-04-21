@@ -1,0 +1,70 @@
+---
+# tasks file for roles/reserve_ip_pools
+
+- name: Print pools defined in the pool data
+  ansible.builtin.debug:
+    msg: >-
+      Pool: {{ item.name }}
+      {% if item.subnet is defined and item.prefix_length is defined %}IP:{{ item.subnet }}/{{ item.prefix_length }} {% endif %}
+      {% if item.gateway is defined %}, GW: {{ item.gateway }} {% endif %}
+      {% if item.dhcp is defined %}}, DHCP: {{ item.dhcp  }} {% endif %}
+  loop: "{{ pools }}"
+  loop_control:
+    label: "Defined pool {{ item.name }}"
+
+- name: Retrieve existing pools from DNAC
+  cisco.dnac.reserve_ip_subpool_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    siteId: "{{ fabric_site_id }}"
+  register: dnac_pools
+
+- name: Print pools found in DNAC
+  ansible.builtin.debug:
+    msg: >-
+      Pool: {{ item.groupName }},
+      {% if item.ipPools[0].ipPoolCidr %}IP: {{ item.ipPools[0].ipPoolCidr }}  {% endif %}
+      {% if item.ipPools[0].gateways %}, GW: {{ item.ipPools[0].gateways }}  {% endif %}
+      {% if item.ipPools[0].dhcpServerIps %}, DHCP: {{ item.ipPools[0].dhcpServerIps }} {% endif %}
+  loop: "{{ dnac_pools.dnac_response.response }}"
+  loop_control:
+    label: "Found pool {{ item.groupName }}"
+
+- name: Check which pools have been defined but not found in DNAC
+  ansible.builtin.set_fact:
+    orphan_counter: "{{ (orphan_counter | default(0) | int) + 1 }}"
+    missing_pool_names: "{{ missing_pool_names | default([]) + [item.name] }}"
+  when: item.name not in dnac_pools.dnac_response.response | map(attribute='groupName') | list
+  loop: "{{ pools }}"
+  loop_control:
+    label: "Found missing pool {{ item.name }}"
+
+- name: Print a list of pools to be created with summary on top
+  ansible.builtin.debug:
+    msg: >-
+      "There are {{ orphan_counter if orphan_counter is defined else 0 }} pools to be created
+      {%if missing_pool_names is defined %}: {{ missing_pool_names }} {% endif %}"
+
+- name: Reserve missing pools
+  cisco.dnac.reserve_ip_subpool_create:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    siteId: "{{ fabric_site_id }}"
+    name: "{{ item }}"
+    type: "LAN"
+    ipv4GlobalPool: "{{ pools | selectattr('name', 'equalto', item) | map(attribute='global_pool_prefix') | first }}"
+    ipv4Prefix: true
+    ipv4Subnet: "{{ pools | selectattr('name', 'equalto', item) | map(attribute='subnet') | first }}"
+    ipv4PrefixLength: "{{ pools | selectattr('name', 'equalto', item) | map(attribute='prefix_length') | first }}"
+    ipv4GateWay: "{{ pools | selectattr('name', 'equalto', item) | map(attribute='gateway') | first | default(omit) }}"
+    ipv4DhcpServers: "{{ pools | selectattr('name', 'equalto', item) | map(attribute='dhcp') | first | default(omit) }}"
+  loop: "{{ missing_pool_names }}"
+  when: missing_pool_names is defined
+  loop_control:
+    label: >-
+      Creating pool '{{ item }}',
+      Global pool {{ pools | selectattr('name', 'equalto', item) | map(attribute='global_pool_prefix') | first }},
+      IPv4 Prefix {{ pools | selectattr('name', 'equalto', item) | map(attribute='subnet') | first }}
+      /{{ pools | selectattr('name', 'equalto', item) | map(attribute='prefix_length') | first }},
+      IPv4 Gateway {{ pools | selectattr('name', 'equalto', item) | map(attribute='gateway') | first | default('not defined') }},
+      IPv4 DHCP {{ pools | selectattr('name', 'equalto', item) | map(attribute='dhcp') | first | default('not defined') }}

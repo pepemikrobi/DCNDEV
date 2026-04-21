@@ -1,6 +1,6 @@
 resource "vsphere_host_port_group" "oob_mgmt" {
 
-    name                = format("(110%s) DCLAB_OOB_10%s", var.pod, var.pod)
+    name                = format("(110%s) SDN_POD%s_DC1 ", var.pod, var.pod)
     host_system_id      = data.vsphere_host.esxi_host.id
     virtual_switch_name = "vSwitch0"
 
@@ -12,7 +12,7 @@ resource "vsphere_host_port_group" "oob_mgmt" {
 
 resource "vsphere_host_port_group" "srv11" {
 
-    name                = format("(1%s11) DCLAB_SRV_11", var.pod)
+    name                = format("(1%s11) SDN_POD%s_SRV11", var.pod, var.pod)
     host_system_id      = data.vsphere_host.esxi_host.id
     virtual_switch_name = "vSwitch1"
 
@@ -24,7 +24,7 @@ resource "vsphere_host_port_group" "srv11" {
 
 resource "vsphere_host_port_group" "srv12" {
 
-    name                = format("(1%s12) DCLAB_SRV_12", var.pod)
+    name                = format("(1%s12) SDN_POD%s_SRV12", var.pod, var.pod)
     host_system_id      = data.vsphere_host.esxi_host.id
     virtual_switch_name = "vSwitch1"
 

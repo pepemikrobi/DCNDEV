@@ -71,7 +71,8 @@ def main():
     cli.configurep(["ip pim register-source Loopback0", "end"])
     cli.configurep(["router isis", f"net {isis_net}", "domain-password sisko", "metric-style wide", "log-adjacency-changes", "nsf ietf", "bfd all-interfaces", "end"])
 
-    {% elif item.device_type == 'sw3' %}cli.configurep(["interface Gi1/0/23", "description Fabric Physical Link", "no switchport", "dampening",\
+    {% elif item.device_type == 'sw3' %}cli.configurep(["router isis", "domain-password sisko"])
+    cli.configurep(["interface Gi1/0/23", "description Fabric Physical Link", "no switchport", "dampening",\
     f"ip address 10.1{pod}.80.2 255.255.255.254","ip lisp source-locator Loopback0","ip pim sparse-mode","ip router isis", \
     "load-interval 30","bfd interval 100 min_rx 100 multiplier 3","no bfd echo","clns mtu 1400","isis network point-to-point","end"])
     

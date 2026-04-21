@@ -1,0 +1,190 @@
+variables:
+  IMAGE_NAME_DNAC: $CI_REGISTRY_IMAGE/dnac  
+  IMAGE_NAME_ACI: $CI_REGISTRY_IMAGE/aci
+  IMAGE_TAG_DNAC: "1.0"
+  IMAGE_TAG_ACI: "1.0"
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_MESSAGE == "Update .gitlab-ci.yml file" || $CI_COMMIT_MESSAGE =~ "/#DONOTRUN/"
+      when: never
+    - when: always
+
+# Here an object cache is created to store .terraform sub-folder contents
+# between container runs. With that, Terraform initialization 
+# and the providers and modules downloaded will be persistent between runs
+# In this case the cache is stored locally in the runnner where
+# the container was executed
+.dependencies_cache:
+  cache:
+    key: TF_NETASCODE
+    paths:
+      - "TF_NETASCODE/.terraform"
+    policy: pull
+
+stages:
+  - build
+  - validate
+  - plan
+  - apply
+
+build_image:
+  stage: build
+  tags:
+    - shell
+  script:
+    - echo $CI_COMMIT_BRANCH
+    - echo $CI_REGISTRY_IMAGE
+    - echo $IMAGE_NAME_DNAC
+    - docker build -t $IMAGE_NAME_DNAC:$IMAGE_TAG_DNAC Docker/DNAC/.
+    - echo $IMAGE_NAME_ACI
+    - docker build -t $IMAGE_NAME_ACI:$IMAGE_TAG_ACI Docker/ACI/.
+
+push_image:
+  stage: build
+  needs:
+    - build_image
+  tags:
+    - shell
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker push $IMAGE_NAME_DNAC:$IMAGE_TAG_DNAC
+    - docker push $IMAGE_NAME_ACI:$IMAGE_TAG_ACI
+
+# The tf_validate job in validate stage is used to check the HCL syntax
+tf_validate:
+  stage: validate
+  # The Docker image is required, the tag selects the docker runner
+  # and the Docker image name is also provided
+  needs:
+    - push_image
+  tags:
+    - docker
+  image: $IMAGE_NAME_ACI:$IMAGE_TAG_ACI
+  # Here the reference to the cache is used
+  extends: .dependencies_cache
+  cache:
+    policy: pull-push
+  # Before the main script starts a Terraform initialization is performed
+  before_script:
+    - echo $CI_PIPELINE_SOURCE
+    - echo $CI_COMMIT_BRANCH
+    - cd TF_NETASCODE
+    - pwd
+    - chmod +x .init.sh
+    - ./.init.sh
+    - terraform version
+  # The main script here just invokes terraform validate
+  script:
+    - terraform validate
+  # The job should only start when the pipeline trigger is merge request
+  # with three possible conditions: 
+  # - source branch starts with feature and target branch is main
+  # - source branch is main and target branch is staging
+  # - source branch is staging and target branch is production
+  rules:
+    - if: |
+        $CI_PIPELINE_SOURCE == "merge_request_event" && (
+          $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^feature.*/ && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" ||
+          $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "main" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "staging" ||
+          $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "staging" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"
+        )
+
+
+# The tf_validate job in validate stage is used to check the HCL syntax
+tf_plan:
+  stage: plan
+  # The Docker image is required, the tag selects the docker runner
+  # and the Docker image name is also provided
+  needs:
+    - push_image
+  tags:
+    - docker
+  image: $IMAGE_NAME_ACI:$IMAGE_TAG_ACI
+  # Here the reference to the cache is used
+  extends: .dependencies_cache
+  cache:
+    policy: pull-push
+  # Before the main script starts a Terraform initialization is performed
+  # And the Terraform shell variables are set based on GitLab variables
+  before_script:
+    - echo $CI_PIPELINE_SOURCE
+    - echo $CI_COMMIT_BRANCH
+    - cd TF_NETASCODE
+    - pwd
+    - chmod +x .init.sh
+    - ./.init.sh
+    - export TF_VAR_aci_username=${ACI_USERNAME}
+    - export TF_VAR_aci_password=${ACI_PASSWORD}
+    - export TF_VAR_aci_url=${ACI_URL}
+  # The main script here just invokes terraform plan
+  script:
+    - terraform plan -out ./output.tfplan
+    - terraform show ./output.tfplan
+
+  # Generate artifacts based on plan output file
+  artifacts:
+    paths:
+      - "./TF_NETASCODE/output.tfplan"
+    untracked: false
+    when: on_success
+    expire_in: 30 days
+
+  # The job should start when the pipeline trigger is merge request
+  # with two possible conditions: 
+  # - source branch is main and target branch is staging
+  # - source branch is staging and target branch is production plus tag is present
+  rules:
+    - if: |
+        $CI_PIPELINE_SOURCE == "merge_request_event" &&
+        $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "main" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "staging"
+    - if: |
+        $CI_PIPELINE_SOURCE == "merge_request_event" &&
+        $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "staging" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production" &&
+        $CI_COMMIT_TAG =~ /.*/  
+
+
+# The tf_apply job in apply stage is used to apply the changes
+tf_apply:
+  stage: apply
+  # The Docker image is required, the tag selects the docker runner
+  # and the Docker image name is also provided
+  needs:
+    - tf_plan
+  tags:
+    - docker
+  image: $IMAGE_NAME_ACI:$IMAGE_TAG_ACI
+  # Here the reference to the cache is used
+  extends: .dependencies_cache
+  cache:
+    policy: pull-push
+  # Before the main script starts a Terraform initialization is performed
+  # And the Terraform shell variables are set based on GitLab variables
+  before_script:
+    - echo $CI_PIPELINE_SOURCE
+    - echo $CI_COMMIT_BRANCH
+    - cd TF_NETASCODE
+    - pwd
+    - chmod +x .init.sh
+    - ./.init.sh
+    - export TF_VAR_aci_username=${ACI_USERNAME}
+    - export TF_VAR_aci_password=${ACI_PASSWORD}
+    - export TF_VAR_aci_url=${ACI_URL}
+  # The main script here just invokes terraform plan
+  # Save output to the file and then display
+  script:
+    - terraform apply -auto-approve | tee ./output.tfapply
+
+  # Generate artifacts based on plan output file
+  artifacts:
+    paths:
+      - "./TF_NETASCODE/output.tfapply"
+    untracked: false
+    when: on_success
+    expire_in: 30 days
+  # The job should only start when the pipeline is triggered by commit with tag
+  # and and the target branch is production 
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "production" && $CI_COMMIT_TAG =~ /.*/
+      when: manual

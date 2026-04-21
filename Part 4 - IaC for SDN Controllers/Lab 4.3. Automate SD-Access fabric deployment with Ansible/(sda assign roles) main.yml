@@ -1,0 +1,244 @@
+---
+# tasks file for roles/sda_assign_roles
+
+### Get and display SDA fabric sites information
+- name: Get all SDA Fabric sites count
+  cisco.dnac.sda_fabric_sites_count_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+  register: sda_fabric_sites_count_info
+
+- name: Display SDA fabric sites count
+  ansible.builtin.debug:
+    msg: "Fabric sites configured: {{ sda_fabric_sites_count_info.dnac_response.response.count }}"
+
+- name: Get SDA fabric sites details
+  cisco.dnac.sda_fabric_sites_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+  register: sites_info_result
+
+- name: Get SDA fabric Site ID
+  ansible.builtin.set_fact:
+    sda_site_id: "{{ sites_info_result.dnac_response.response[0].id }}"
+
+- name: Display SDA fabric site details
+  ansible.builtin.debug:
+    msg: "SDA Site ID: {{ sda_site_id }}"
+
+
+# Get all SDA Fabric Devices
+- name: Get SDA devices count
+  cisco.dnac.sda_fabric_devices_count_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    fabricId: "{{ sda_site_id }}"
+  register: device_count_result
+
+- name: Display SDA devices count
+  ansible.builtin.set_fact:
+    sda_device_count: "{{ device_count_result.dnac_response.response.count }}"
+
+- name: Display SDA devices count
+  ansible.builtin.debug:
+    msg: "SDA devices count before role assignment: {{ sda_device_count }}"
+
+- name: Get all SDA fabric devices
+  cisco.dnac.sda_fabric_devices_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    fabricId: "{{ sda_site_id }}"
+  register: device_result
+
+- name: Display all SDA Fabric devices raw dump
+  ansible.builtin.debug:
+    msg: "{{ device_result.dnac_response.response }}"
+
+- name: Will stop if all devices are assigned
+  ansible.builtin.debug:
+    msg: "All devices have already been assigned their roles, stopping."
+  when: sda_device_count | int >= 4
+
+- name: Stop if all devices have already been already assigned
+  ansible.builtin.meta: end_play
+  when: sda_device_count | int >= 4
+
+
+# Assign roles to SDA fabric devices
+- name: Tasks block to assign Border with error handling
+  when: sda_device_count | int < 2
+  block:
+    - name: Create Border data for assignment
+      ansible.builtin.set_fact:
+        border_register_payload: |
+          {{ border_register_payload | default([]) +
+            [
+              {
+                "deviceRoles": item.roles,
+                "fabricId": sda_site_id,
+                "networkDeviceId": _dev_data.dev_id,
+                "borderDeviceSettings": {
+                  "borderTypes": [
+                    "LAYER_3"
+                  ],
+                  "layer3Settings": {
+                    "importExternalRoutes": true,
+                    "isDefaultExit": true,
+                    "localAutonomousSystemNumber":
+                      fabric_config | selectattr('mgmt_ip', 'eq', item.mgmt_ip)
+                      | map(attribute='as_number') | first
+                  }
+                }
+              }
+            ]
+          }}
+
+      vars:
+        _dev_data: |
+          {{
+          fabric_device_data | selectattr('roles', 'defined')
+          | selectattr('mgmt_ip', 'eq', item.mgmt_ip) | first
+          }}
+        q: "[*].roles[?contains(@, 'BORDER_NODE')]"
+      loop: |
+        {{
+          fabric_config | selectattr('roles', 'defined')
+          | selectattr('roles', 'search', 'BORDER_NODE')
+          | list
+        }}
+      loop_control:
+        label: "Preparing data for Border device {{ item.mgmt_ip }}"
+
+    - name: Display Border data for assignment
+      ansible.builtin.debug:
+        var: border_register_payload
+
+    - name: Assign Border / CP roles
+      cisco.dnac.sda_fabric_devices:
+        dnac_host: "{{ dnac_host }}"
+        dnac_verify: "{{ dnac_verify }}"
+        state: present
+        id: "{{ sda_site_id }}"
+        payload: "{{ border_register_payload }}"
+      register: assign_border_result
+
+    - name: Display Border assignment roles result
+      ansible.builtin.debug:
+        msg: "Result: {{ assign_border_result }}"
+
+    - name: Pause for 10 seconds to allow device assignment to be completed
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Get SDA Border assignment task status
+      cisco.dnac.task_info:
+        dnac_host: "{{ dnac_host }}"
+        dnac_verify: "{{ dnac_verify }}"
+        taskId: "{{ assign_border_result.dnac_response.taskId }}"
+      register: assign_border_task_response
+
+    - name: Display task status response
+      ansible.builtin.debug:
+        msg: |
+          "Assign Border task status:
+          {{ assign_border_task_response.dnac_response }}
+
+# Get updated SDA fabric devices count
+- name: Get updated SDA devices count
+  cisco.dnac.sda_fabric_devices_count_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    fabricId: "{{ sda_site_id }}"
+  register: device_count_result
+
+- name: Display updated SDA devices count
+  ansible.builtin.set_fact:
+    sda_device_count: "{{ device_count_result.dnac_response.response.count }}"
+
+- name: Display updated SDA devices count
+  ansible.builtin.debug:
+    msg: "SDA devices count: {{ sda_device_count }}"
+
+
+# Assign role to SDA Edge devices
+- name: Tasks block to assign Edge role with error handling
+  when: sda_device_count | int >= 2
+  block:
+    - name: Create Edge data for assignment
+      ansible.builtin.set_fact:
+        edge_register_payload: |
+          {{ edge_register_payload | default([]) +
+            [
+              {
+                "deviceRoles": item.roles,
+                "fabricId": sda_site_id,
+                "networkDeviceId": _dev_data.dev_id
+              }
+            ]
+          }}
+
+      vars:
+        _dev_data: |
+          {{
+          fabric_device_data | selectattr('roles', 'defined')
+          | selectattr('mgmt_ip', 'eq', item.mgmt_ip) | first
+          }}
+        q: "[*].roles[?contains(@, 'BORDER_NODE')]"
+      loop: |
+        {{
+          fabric_config | selectattr('roles', 'defined')
+          | selectattr('roles', 'search', 'EDGE_NODE')
+          | list
+        }}
+      loop_control:
+        label: "Preparing data for Edge device {{ item.mgmt_ip }}"
+
+    - name: Display Edge data for assignment
+      ansible.builtin.debug:
+        var: edge_register_payload
+
+    - name: Assign Edge roles
+      cisco.dnac.sda_fabric_devices:
+        dnac_host: "{{ dnac_host }}"
+        dnac_verify: "{{ dnac_verify }}"
+        state: present
+        id: "{{ sda_site_id }}"
+        payload: "{{ edge_register_payload }}"
+      register: assign_edge_result
+
+    - name: Display Assign roles result
+      ansible.builtin.debug:
+        msg: "Result: {{ assign_edge_result }}"
+
+    - name: Pause for 10 seconds to allow device assignment to be completed
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Get SDA fabric task status
+      cisco.dnac.task_info:
+        dnac_host: "{{ dnac_host }}"
+        dnac_verify: "{{ dnac_verify }}"
+        taskId: "{{ assign_edge_result.dnac_response.taskId }}"
+      register: assign_edge_task_response
+
+    - name: Display task status response
+      ansible.builtin.debug:
+        msg: |
+          "Assign Edge task status:
+          {{ assign_edge_task_response.dnac_response }}
+
+# Get final SDA fabric devices count
+- name: Get final SDA devices count
+  cisco.dnac.sda_fabric_devices_count_info:
+    dnac_host: "{{ dnac_host }}"
+    dnac_verify: "{{ dnac_verify }}"
+    fabricId: "{{ sda_site_id }}"
+  register: device_count_result
+
+- name: Display final SDA devices count
+  ansible.builtin.set_fact:
+    sda_device_count: "{{ device_count_result.dnac_response.response.count }}"
+
+- name: Display final SDA devices count
+  ansible.builtin.debug:
+    msg: "SDA devices count: {{ sda_device_count }}"
