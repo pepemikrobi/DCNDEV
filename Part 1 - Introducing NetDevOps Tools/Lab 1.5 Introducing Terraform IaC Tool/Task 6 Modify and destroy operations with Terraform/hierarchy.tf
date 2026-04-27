@@ -1,9 +1,9 @@
-resource "dnacenter_area" "europe" {
+resource "dnacenter_area" "podX" {
     provider = dnacenter
     parameters {
         site {
             area {
-            name        = "Europe"
+            name        = "PODX"
             parent_name = "Global"
             }
         }
@@ -11,13 +11,27 @@ resource "dnacenter_area" "europe" {
     }
 }
 
-    resource "dnacenter_area" "poland" {
+resource "dnacenter_area" "europe" {
+    provider = dnacenter
+    parameters {
+        site {
+            area {
+            name        = "Europe"
+            parent_name = "Global/PODX"
+            }
+        }
+        type = "area"
+    }
+    depends_on = [ dnacenter_area.podX ]
+}
+
+resource "dnacenter_area" "poland" {
     provider = dnacenter
     parameters {
         site {
             area {
             name        = "PL"
-            parent_name = "Global/Europe"
+            parent_name = "Global/PODX/Europe"
             }
         }
     type = "area"
@@ -32,11 +46,10 @@ resource "dnacenter_building" "hector" {
             building {
             address     = "Gwiaździsta 19, 01-651 Warszawa"
             name        = "Hector"
-            parent_name = "Global/Europe/PL"
+            parent_name = "Global/PODX/Europe/PL"
             }
         }
     type    = "building"
     }
     depends_on = [ dnacenter_area.poland ]
 }
-
