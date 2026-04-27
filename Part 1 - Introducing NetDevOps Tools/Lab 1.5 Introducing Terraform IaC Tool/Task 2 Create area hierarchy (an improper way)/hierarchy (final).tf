@@ -1,9 +1,9 @@
-resource "dnacenter_area" "pod5" {
+resource "dnacenter_area" "podX" {
     provider = dnacenter
     parameters {
         site {
             area {
-            name        = "POD5"
+            name        = "PODX"
             parent_name = "Global"
             }
         }
@@ -17,7 +17,7 @@ resource "dnacenter_area" "europe" {
         site {
             area {
             name        = "Europe"
-            parent_name = "POD5"
+            parent_name = "Global/PODX"
             }
         }
         type = "area"
@@ -30,7 +30,7 @@ resource "dnacenter_area" "poland" {
         site {
             area {
             name        = "Poland"
-            parent_name = "Global/Europe"
+            parent_name = "Global/PODX/Europe"
             }
         }
     type = "area"
