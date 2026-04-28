@@ -1,6 +1,6 @@
 resource "vsphere_host_port_group" "oob_mgmt" {
 
-    name                = format("(110%s) SDN_POD%s_DC1 ", var.pod, var.pod)
+    name                = format("(110%s) SDN_POD%s_DC1", var.pod, var.pod)
     host_system_id      = data.vsphere_host.esxi_host.id
     virtual_switch_name = "vSwitch0"
 
