@@ -1,0 +1,208 @@
+---
+# =============================================================================
+# Cisco IOS Loopback Compliance Check
+# Created by Claude Sonnet 4.6 and fixed by human edits
+# =============================================================================
+# Purpose : Verify loopback interfaces defined in inventory are correctly
+#           configured on IOS devices (IP address + optional description).
+# Mode    : READ-ONLY — no configuration changes are made.
+# Output  : Text report printed to stdout and saved to {{ report_dest }}.
+# Requires: cisco.ios collection  (ansible-galaxy collection install cisco.ios)
+# =============================================================================
+
+- name: Cisco IOS — Loopback Compliance Check
+  hosts: all
+  gather_facts: false
+  connection: network_cli
+  vars:
+    ansible_network_os: ios
+
+  tasks:
+
+    # -------------------------------------------------------------------------
+    # Step 1 – Collect raw CLI output (read-only commands)
+    # NOTE: task name must be a static string — item.* cannot be used in name:.
+    #       Use loop_control.label to show the interface name in task output.
+    # -------------------------------------------------------------------------
+
+    - name: Collect show interfaces output for all loopbacks
+      cisco.ios.ios_command:
+        commands:
+          - "show interfaces {{ item.name }}"
+      loop: "{{ loopbacks }}"
+      loop_control:
+        label: "{{ item.name }}"
+      register: reg_intf
+      ignore_errors: true   # gracefully handle non-existent interface
+
+    - name: Collect show ip interface output for all loopbacks
+      cisco.ios.ios_command:
+        commands:
+          - "show ip interface {{ item.name }}"
+      loop: "{{ loopbacks }}"
+      loop_control:
+        label: "{{ item.name }}"
+      register: reg_ip
+      ignore_errors: true
+
+    # -------------------------------------------------------------------------
+    # Step 2 – Parse and evaluate each loopback
+    # -------------------------------------------------------------------------
+
+    - name: Evaluate compliance for all loopbacks
+      set_fact:
+        compliance_results: "{{ compliance_results | default([]) + [result] }}"
+      vars:
+        intf_stdout: "{{ reg_intf.results[idx].stdout[0] | default('') }}"
+        ip_stdout:   "{{ reg_ip.results[idx].stdout[0]   | default('') }}"
+        cmd_failed:  "{{ reg_intf.results[idx].failed    | default(false) }}"
+
+        # ---- Interface existence ----
+        # IOS returns "% Invalid input" when interface does not exist.
+        intf_exists: >-
+          {{
+            not cmd_failed
+            and 'Invalid input' not in intf_stdout
+            and intf_stdout | length > 0
+            and intf_stdout[:2] != '% '
+          }}
+
+        # ---- IP address check ----
+        # "show ip interface <intf>" contains a line like:
+        #   Internet address is 100.0.1.3/32
+        found_ip_cidr: >-
+          {{
+            ip_stdout
+            | regex_search('Internet address is (\S+)', '\1')
+            | first | default('')
+          }}
+        ip_ok: "{{ found_ip_cidr == item.ip_address }}"
+
+        # ---- Description check (only when description: true in inventory) ----
+        # "show interfaces <intf>" contains:
+        #   Description: <text>        (when configured)
+        #   (no Description line)      (when not configured)
+        desc_required: "{{ item.get('description', false) | bool }}"
+        found_desc: >-
+          {{
+            intf_stdout
+            | regex_search('Description:\s*(.+)', '\1')
+            | default([], true)
+            | first
+            | default('')
+            | trim
+          }}
+        desc_ok: "{{ not desc_required or found_desc | length > 0 }}"
+
+        # ---- Composite result record ----
+        result:
+          host:          "{{ inventory_hostname }}"
+          interface:     "{{ item.name }}"
+          expected_ip:   "{{ item.ip_address }}"
+          desc_required: "{{ desc_required }}"
+          exists:        "{{ intf_exists }}"
+          ip_check: >-
+            {%- if not intf_exists -%}
+              N/A — interface does not exist
+            {%- elif ip_ok -%}
+              PASS  ({{ found_ip_cidr }})
+            {%- else -%}
+              FAIL  — expected {{ item.ip_address }}, found {{ found_ip_cidr | default('none') }}
+            {%- endif -%}
+          desc_check: >-
+            {%- if not desc_required -%}
+              N/A — not required
+            {%- elif not intf_exists -%}
+              N/A — interface does not exist
+            {%- elif desc_ok -%}
+              PASS  ({{ found_desc }})
+            {%- else -%}
+              FAIL  — description required but not configured
+            {%- endif -%}
+          overall: >-
+            {{
+              'PASS' if (intf_exists and ip_ok and desc_ok)
+              else 'FAIL'
+            }}
+
+      loop: "{{ loopbacks }}"
+      loop_control:
+        index_var: idx
+        label: "{{ item.name }}"
+
+# =============================================================================
+# Final play – runs once on localhost after all hosts have been checked
+# =============================================================================
+
+- name: Write consolidated compliance report
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    report_dest: "reports/compliance_report_{{ lookup('pipe', 'date +%Y-%m-%d-%H-%M-%S') }}.txt"
+
+  tasks:
+
+    - name: Collect all results from every host
+      set_fact:
+        all_results: >-
+          {{
+            groups['all']
+            | map('extract', hostvars, 'compliance_results')
+            | select('defined')
+            | flatten
+          }}
+
+    - name: Identify non-compliant items
+      set_fact:
+        failures: "{{ all_results | selectattr('overall', 'equalto', 'FAIL') | list }}"
+
+    - name: Build report content
+      set_fact:
+        report_lines: |
+          ================================================================
+           CISCO IOS LOOPBACK COMPLIANCE REPORT
+           Generated : {{ lookup('pipe', 'date "+%Y-%m-%d %H:%M:%S %Z"') }}
+          ================================================================
+
+          {% for result in all_results %}
+          Host       : {{ result.host }}
+          Interface  : {{ result.interface }}
+          Expected IP: {{ result.expected_ip }}
+          Desc req'd : {{ 'YES' if result.desc_required else 'NO' }}
+          Exists     : {{ 'YES' if result.exists else 'NO — INTERFACE MISSING' }}
+          IP check   : {{ result.ip_check }}
+          Desc check : {{ result.desc_check }}
+          Status     : {{ result.overall }}
+          ----------------------------------------------------------------
+          {% endfor %}
+
+          ================================================================
+           SUMMARY
+          ================================================================
+           Total checks : {{ all_results | length }}
+           Passed       : {{ all_results | selectattr('overall', 'equalto', 'PASS') | list | length }}
+           Failed       : {{ failures | length }}
+
+          {% if failures | length > 0 %}
+           NON-COMPLIANT ITEMS:
+          {% for f in failures %}
+           - {{ f.host }} / {{ f.interface }}: IP={{ f.ip_check | trim }} | Desc={{ f.desc_check | trim }}
+          {% endfor %}
+          {% else %}
+           ALL CHECKS PASSED — no issues found.
+          {% endif %}
+          ================================================================
+
+    - name: Print report to stdout
+      debug:
+        msg: "{{ report_lines.split('\n') }}"
+
+    - name: Save report to file
+      copy:
+        dest: "{{ report_dest }}"
+        content: "{{ report_lines }}"
+
+    - name: Report file location
+      debug:
+        msg: "Compliance report saved to: {{ report_dest }}"
