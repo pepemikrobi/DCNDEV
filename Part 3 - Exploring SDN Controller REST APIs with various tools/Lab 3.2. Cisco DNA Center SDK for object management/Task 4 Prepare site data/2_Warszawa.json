@@ -2,8 +2,8 @@
     "type": "area",
     "site": {
         "area": {
-            "name": "Poland",
-            "parentName": "Global/PODX"
+            "name": "Warszawa",
+            "parentName": "Global/Poland"
         }
     }
 }

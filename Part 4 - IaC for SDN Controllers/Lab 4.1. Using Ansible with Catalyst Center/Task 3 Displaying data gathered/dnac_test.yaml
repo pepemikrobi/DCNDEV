@@ -11,7 +11,7 @@
 
   - name: Display devices
     debug:
-      msg: "Hostname: {{item.hostname}}, IP: {{item.managementIpAddress}}, Location: {{item.location}}"
+      msg: "Hostname: {{item.hostname}}, IP: {{item.managementIpAddress}}, Platform: {{item.platformId}}"
     with_items:
       - "{{out_network.dnac_response.response}}"
 
