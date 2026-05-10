@@ -1,0 +1,38 @@
+- name: Provision PODX_SW3
+  hosts: podX_dnac
+  connection: local
+  gather_facts: false
+  vars:
+    site_name: "Global/Poland/Warszawa/Hector"
+    pod: X
+
+  tasks:
+    - name: Retrieve DNAC inventory
+      cisco.dnac.network_device_info:
+        dnac_host: "{{ dnac_host }}"
+        dnac_verify: "{{ dnac_verify }}"
+      register: dnac_inventory_result
+
+    - name: Mark SW3 provisioning readiness when PODX_SW1 and PODX_SW2 are in DNAC inventory
+      vars:
+        dnac_hostnames: "{{ (dnac_inventory_result.dnac_response.response | default([])) | map(attribute='hostname') | list }}"
+      when:
+        - dnac_inventory_result.dnac_response is defined
+        - dnac_inventory_result.dnac_response.response is defined
+        - ('POD' ~ (pod | string) ~ '_SW1') in dnac_hostnames
+        - ('POD' ~ (pod | string) ~ '_SW2') in dnac_hostnames
+      block:
+        - name: Print if PODX_SW1 and PODX_SW2 are in the DNAC inventory
+          ansible.builtin.debug:
+            msg: "POD{{ pod }}_SW1 and POD{{ pod }}_SW2 are in the DNAC inventory, will trigger provisioning for POD{{ pod }}_SW3"
+
+        - name: Trigger provisioning for PODX_SW3
+          cisco.dnac.provision_workflow_manager:
+            dnac_host: "{{ dnac_host }}"
+            dnac_verify: "{{ dnac_verify }}"
+            dnac_version: "2.3.7.9"
+            dnac_password: "{{ lookup('env', 'DNAC_PASSWORD') }}"   # This workflow module requires separate credentials
+            state: merged
+            config:
+              - site_name_hierarchy: "{{ site_name }}"
+                management_ip_address: "10.1{{ pod }}.127.3"

@@ -3,8 +3,8 @@
   connection: local
   gather_facts: false
   vars:
-    - site_name: "Global/Poland/Warszawa/Hector"
-    - pod: X
+    site_name: "Global/Poland/Warszawa/Hector"
+    pod: X
 
   vars_files:
     - ip_pool_data.yaml

@@ -3,19 +3,19 @@
   connection: local
   gather_facts: false
   vars:
-    - site_name: "Global/Poland/Warszawa/Hector"
-    - pod: X
-    - underlay_pool_name: "UNDERLAY"
-    - isis_password: "sisko"
-    - seed_switch: "10.1X.127.3"
-    - seed_interfaces:
+    site_name: "Global/Poland/Warszawa/Hector"
+    pod: X
+    underlay_pool_name: "UNDERLAY"
+    isis_password: "sisko"
+    seed_switch: "10.1X.127.3"
+    seed_interfaces:
       - "GigabitEthernet1/0/1"
       - "GigabitEthernet1/0/2"
       - "GigabitEthernet1/0/3"
       - "GigabitEthernet1/0/4"
-    - day0_switches:
-        sw1_serial: "xxxxxxxxxxx"
-        sw2_serial: "xxxxxxxxxxx" 
+    day0_switches:
+      sw1_serial: "xxxxxxxxxxx"
+      sw2_serial: "xxxxxxxxxxx" 
 
   vars_files:
     - ip_pool_data.yaml

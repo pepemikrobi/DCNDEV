@@ -3,7 +3,8 @@
   connection: local
   gather_facts: false
   vars:
-    - site_name: "global/Poland/Warszawa/Hector"
+    site_name: "Global/Poland/Warszawa/Hector"
+    
   roles:
     - get_info
     - role: pause
