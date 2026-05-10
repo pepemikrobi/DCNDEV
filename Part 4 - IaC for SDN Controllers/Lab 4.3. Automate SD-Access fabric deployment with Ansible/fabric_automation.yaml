@@ -3,32 +3,32 @@
   connection: local
   gather_facts: false
   vars:
-    - site_name: "Global/Poland/Warszawa/Hector"
-    - pod: X
-    - fabric_config:
-        - name: "POD{{ pod }}_SW1"
-          mgmt_ip: "10.1{{ pod }}.127.1"
-          roles:
-            - "EDGE_NODE"
+    site_name: "Global/Poland/Warszawa/Hector"
+    pod: X
+    fabric_config:
+      - name: "POD{{ pod }}_SW1"
+        mgmt_ip: "10.1{{ pod }}.127.1"
+        roles:
+          - "EDGE_NODE"
 
-        - name: "POD{{ pod }}_SW2"
-          mgmt_ip: "10.1{{ pod }}.127.2"
-          roles:
-            - "EDGE_NODE"
+      - name: "POD{{ pod }}_SW2"
+        mgmt_ip: "10.1{{ pod }}.127.2"
+        roles:
+          - "EDGE_NODE"
 
-        - name: "POD{{ pod }}_R1"
-          mgmt_ip: "10.1{{ pod }}.127.101"
-          roles:
-            - "CONTROL_PLANE_NODE"
-            - "BORDER_NODE"
-          as_number: "6550{{ pod }}"
+      - name: "POD{{ pod }}_R1"
+        mgmt_ip: "10.1{{ pod }}.127.101"
+        roles:
+          - "CONTROL_PLANE_NODE"
+          - "BORDER_NODE"
+        as_number: "6550{{ pod }}"
 
-        - name: "POD{{ pod }}_R2"
-          mgmt_ip: "10.1{{ pod }}.127.102"
-          roles:
-            - "CONTROL_PLANE_NODE"
-            - "BORDER_NODE"
-          as_number: "6550{{ pod }}"
+      - name: "POD{{ pod }}_R2"
+        mgmt_ip: "10.1{{ pod }}.127.102"
+        roles:
+          - "CONTROL_PLANE_NODE"
+          - "BORDER_NODE"
+        as_number: "6550{{ pod }}"
 
   roles:
     - get_info
