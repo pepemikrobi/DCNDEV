@@ -29,7 +29,7 @@
           - "CONTROL_PLANE_NODE"
           - "BORDER_NODE"
         as_number: "6550{{ pod }}"
-
+  
   roles:
     - get_info
     - role: pause
@@ -37,12 +37,9 @@
     - sda_prepare_data
     - role: pause
       message: "check for existing SD-Access fabric and create if necessary"
-    - sda_check_existing_fabric
+    - sda_check_existing_fabric    
     - role: sda_create_fabric
       when: create_fabric
     - role: pause
       message: "provision fabric devices"
     - sda_provision_fabric_devices
-    - role: pause
-      message: "assign device SD-Access roles"
-    - sda_assign_roles

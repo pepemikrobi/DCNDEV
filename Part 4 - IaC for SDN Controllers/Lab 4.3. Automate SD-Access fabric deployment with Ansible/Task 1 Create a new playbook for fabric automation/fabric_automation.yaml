@@ -1,0 +1,10 @@
+- name: Provision SDA Fabric
+  hosts: podX_dnac
+  connection: local
+  gather_facts: false
+  vars:
+    site_name: "Global/Poland/Warszawa/Hector"
+    pod: X
+  
+  roles:
+    - get_info
