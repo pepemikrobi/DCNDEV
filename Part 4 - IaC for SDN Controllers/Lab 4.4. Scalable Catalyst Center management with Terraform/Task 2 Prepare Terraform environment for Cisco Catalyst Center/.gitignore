@@ -1,0 +1,7 @@
+*.ini
+.*ini
+TF_INTRO/.terraform
+TF_SERVERS/.terraform
+Ansible_IOS/backups
+Ansible_IOS/reports
+TF_CATC/.terraform
