@@ -1,0 +1,9 @@
+catalyst_center:
+  sites:
+    buildings:
+      - name: Hector
+        parent_name: Global/Poland/Warszawa
+        country: Poland
+        latitude: 52.23
+        longitude: 21
+

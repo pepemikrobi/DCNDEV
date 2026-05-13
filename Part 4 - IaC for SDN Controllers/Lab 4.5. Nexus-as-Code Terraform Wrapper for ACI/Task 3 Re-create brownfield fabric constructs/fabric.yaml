@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/netascode/schema/refs/heads/main/schema.json
+catalyst_center:
+  fabric:
+    fabric_sites:
+      - name: Global/Poland/Warszawa/Hector
+        pub_sub_enabled: true
+
+    border_devices:
+      - name: PODX_R1.sdn.lab
+        border_types:
+          - LAYER_3
+        local_autonomous_system_number: 65505
+        import_external_routes: true
+        default_exit: true
+        border_priority: 10
+        
+      - name: PODX_R2.sdn.lab
+        border_types:
+          - LAYER_3
+        local_autonomous_system_number: 65505
+        import_external_routes: true
+        default_exit: true
+        border_priority: 10
+
+  inventory:
+    devices:
+      - name: PODX_R1.sdn.lab
+        device_ip: 10.1X.127.101
+        state: PROVISION
+        site: Global/Poland/Warszawa/Hector
+        device_role: DISTRIBUTION
+        fabric_site: Global/Poland/Warszawa/Hector
+        fabric_roles:
+          - BORDER_NODE
+          - CONTROL_PLANE_NODE
+
+      - name: PODX_R2.sdn.lab
+        device_ip: 10.1X.127.102
+        state: PROVISION
+        site: Global/Poland/Warszawa/Hector
+        device_role: DISTRIBUTION
+        fabric_site: Global/Poland/Warszawa/Hector
+        fabric_roles:
+          - BORDER_NODE
+          - CONTROL_PLANE_NODE
+
+      - name: PODX_SW1.sdn.lab
+        device_ip: 10.1X.127.1
+        state: PROVISION
+        site: Global/Poland/Warszawa/Hector
+        device_role: ACCESS
+        fabric_site: Global/Poland/Warszawa/Hector
+        fabric_roles:
+          - EDGE_NODE
+
+      - name: PODX_SW2.sdn.lab
+        device_ip: 10.1X.127.2
+        state: PROVISION
+        site: Global/Poland/Warszawa/Hector
+        device_role: ACCESS
+        fabric_site: Global/Poland/Warszawa/Hector
+        fabric_roles:
+          - EDGE_NODE
+

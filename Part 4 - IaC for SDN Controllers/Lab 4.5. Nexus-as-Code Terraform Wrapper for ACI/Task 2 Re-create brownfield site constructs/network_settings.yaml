@@ -1,0 +1,10 @@
+catalyst_center:
+  network_settings:
+    ip_pools:
+      - name: PODX_POOL_OVERLAY
+        ip_address_space: IPv4
+        ip_pool_cidr: "10.1X.128.0/17"
+        ip_pools_reservations:
+          - name: NET131
+          - name: NET132
+          - name: NET133

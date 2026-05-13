@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "**/TF_NETASCODE/data/*.yaml": "yaml"
+    },
+    "yaml.schemaStore.enable": false,
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/inventory.json": [
+            "Ansible_IOS/devices.yaml",
+            "**/inventory.yaml"
+        ],
+        "https://raw.githubusercontent.com/netascode/schema/refs/heads/main/schema.json": [
+            "TF_NETASCODE/data/*.yaml"
+        ]
+    }
+}
