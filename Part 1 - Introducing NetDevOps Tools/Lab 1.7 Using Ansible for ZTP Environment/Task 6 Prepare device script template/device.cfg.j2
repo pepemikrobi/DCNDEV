@@ -44,8 +44,8 @@ def main():
 
     cli.configurep(["ip routing", "end"])
 
-    {% if item.device_type == 'r1' %}cli.configurep(["interface Loopback0", f"ip address 10.1{pod}.127.101 255.255.255.255", "end"])
-    {% elif item.device_type == 'r2' %}cli.configurep(["interface Loopback0", f"ip address 10.1{pod}.127.102 255.255.255.255", "end"])
+    {% if item.device_type == 'r1' %}cli.configurep(["interface Loopback0", f"ip address 10.1{pod}.127.101 255.255.255.255", "ip router isis", "end"])
+    {% elif item.device_type == 'r2' %}cli.configurep(["interface Loopback0", f"ip address 10.1{pod}.127.102 255.255.255.255", "ip router isis", "end"])
     {% else %}cli.configurep(["interface Loopback0", f"ip address 10.1{pod}.127.3 255.255.255.255", "end"])
     {% endif %}
 

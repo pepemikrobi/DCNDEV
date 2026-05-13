@@ -1,0 +1,138 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/netascode/schema/refs/heads/main/schema.json
+catalyst_center:
+  fabric:
+    transits:
+      - name: XFER
+        type: IP_BASED_TRANSIT
+        routing_protocol_name: BGP
+        autonomous_system_number: 65001  
+    l3_virtual_networks:
+      - name: VN1
+      - name: VN2  
+    fabric_sites:
+      - name: Global/Poland/Warszawa/Hector
+        authentication_template:
+          name: Closed Authentication      
+        pub_sub_enabled: true
+        l3_virtual_networks:
+          - VN1
+          - VN2
+        anycast_gateways:
+          - ip_pool_name: NET131
+            l3_virtual_network: VN1
+            auto_generate_vlan_name: false
+            vlan_name: NET131-VN1
+          - ip_pool_name: NET132
+            l3_virtual_network: VN1
+            auto_generate_vlan_name: false
+            vlan_name: NET132-VN1
+          - ip_pool_name: NET133
+            l3_virtual_network: VN2
+            auto_generate_vlan_name: false
+            vlan_name: NET133-VN2        
+
+    border_devices:
+      - name: PODX_R1.sdn.lab
+        border_types:
+          - LAYER_3
+        local_autonomous_system_number: 65505
+        import_external_routes: true
+        default_exit: true
+        border_priority: 10
+        l3_handoffs:
+          - name: XFER
+            interfaces:
+              - name: GigabitEthernet0/0/0
+                virtual_networks:
+                  - name: VN1
+                    local_ip_address: 1.1.X.1/30
+                    peer_ip_address: 1.1.X.2/30
+                    vlan: 30X1
+                  - name: VN2
+                    local_ip_address: 1.1.X.5/30
+                    peer_ip_address: 1.1.X.6/30
+                    vlan: 30X2       
+
+      - name: PODX_R2.sdn.lab
+        border_types:
+          - LAYER_3
+        local_autonomous_system_number: 65505
+        import_external_routes: true
+        default_exit: true
+        border_priority: 10
+        l3_handoffs:
+          - name: XFER
+            interfaces:
+              - name: GigabitEthernet0/0/0
+                virtual_networks:
+                  - name: VN1
+                    local_ip_address: 1.1.X.9/30
+                    peer_ip_address: 1.1.X.10/30
+                    vlan: 30X3
+                  - name: VN2
+                    local_ip_address: 1.1.X.13/30
+                    peer_ip_address: 1.1.X.14/30
+                    vlan: 30X4        
+
+  inventory:
+    devices:
+      - name: PODX_R1.sdn.lab
+        device_ip: 10.1X.127.101
+        state: PROVISION
+        site: Global/Poland/Warszawa/Hector
+        device_role: DISTRIBUTION
+        fabric_site: Global/Poland/Warszawa/Hector
+        fabric_roles:
+          - BORDER_NODE
+          - CONTROL_PLANE_NODE
+
+      - name: PODX_R2.sdn.lab
+        device_ip: 10.1X.127.102
+        state: PROVISION
+        site: Global/Poland/Warszawa/Hector
+        device_role: DISTRIBUTION
+        fabric_site: Global/Poland/Warszawa/Hector
+        fabric_roles:
+          - BORDER_NODE
+          - CONTROL_PLANE_NODE
+
+      - name: PODX_SW1.sdn.lab
+        device_ip: 10.1X.127.1
+        state: PROVISION
+        site: Global/Poland/Warszawa/Hector
+        device_role: ACCESS
+        fabric_site: Global/Poland/Warszawa/Hector
+        fabric_roles:
+          - EDGE_NODE
+        port_assignments:
+          - interface_name: GigabitEthernet1/0/1
+            interface_description: PODX_PC1
+            connected_device_type: USER_DEVICE
+            data_vlan_name: NET131-VN1
+            authenticate_template_name: No Authentication
+          - interface_name: GigabitEthernet1/0/2
+            interface_description: PODX_PC2
+            connected_device_type: USER_DEVICE
+            data_vlan_name: NET132-VN1
+            authenticate_template_name: No Authentication          
+
+      - name: PODX_SW2.sdn.lab
+        device_ip: 10.1X.127.2
+        state: PROVISION
+        site: Global/Poland/Warszawa/Hector
+        device_role: ACCESS
+        fabric_site: Global/Poland/Warszawa/Hector
+        fabric_roles:
+          - EDGE_NODE
+        port_assignments:
+          - interface_name: GigabitEthernet1/0/1
+            interface_description: PODX_PC3
+            connected_device_type: USER_DEVICE
+            data_vlan_name: NET131-VN1
+            authenticate_template_name: No Authentication
+          - interface_name: GigabitEthernet1/0/2
+            interface_description: PODX_PC4
+            connected_device_type: USER_DEVICE
+            data_vlan_name: NET133-VN2
+            authenticate_template_name: No Authentication            
+
