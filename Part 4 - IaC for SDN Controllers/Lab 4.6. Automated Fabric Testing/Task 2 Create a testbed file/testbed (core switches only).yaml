@@ -1,0 +1,33 @@
+# Core switches added manually
+    CORE_SW1:
+        alias: 'CORE_SW1'
+        type: 'Cisco Catalyst 4000 Switch'
+        os: 'iosxe'
+        platform: cat4k
+        credentials:
+            default:
+                username: podX
+                password: AdminXsisko$
+        connections:
+            cli:
+                protocol: ssh
+                ip: 10.16.3.11
+                port: 22
+                arguments:
+                    connection_timeout: 360
+    CORE_SW2:
+        alias: 'CORE_SW2'
+        type: 'Cisco Catalyst 4000 Switch'
+        os: 'iosxe'
+        platform: cat4k
+        credentials:
+            default:
+                username: podX
+                password: AdminXsisko$
+        connections:
+            cli:
+                protocol: ssh
+                ip: 10.16.3.12
+                port: 22
+                arguments:
+                    connection_timeout: 360
