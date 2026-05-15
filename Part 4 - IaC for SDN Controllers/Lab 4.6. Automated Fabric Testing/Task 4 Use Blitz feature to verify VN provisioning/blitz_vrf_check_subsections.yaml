@@ -1,0 +1,20 @@
+setup:
+    sections:
+      connect:
+        method: genie.harness.commons.connect
+    order: ['connect']
+
+    processors:
+      post:
+        genie_telemetry:
+          method: genie.telemetry.processors.genie_telemetry_processor
+
+    telemetry_plugins: ['crashdumps']
+
+cleanup:
+    processors:
+      post:
+        genie_telemetry:
+          method: genie.telemetry.processors.genie_telemetry_processor
+
+    telemetry_plugins: ['tracebackcheck']
