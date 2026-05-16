@@ -1,0 +1,11 @@
+setup:
+    sections:
+      connect:
+        method: genie.harness.commons.connect
+    order: ['connect']
+
+cleanup:
+    sections:
+      disconnect:
+        method: genie.harness.commons.disconnect
+    order: ['disconnect']
