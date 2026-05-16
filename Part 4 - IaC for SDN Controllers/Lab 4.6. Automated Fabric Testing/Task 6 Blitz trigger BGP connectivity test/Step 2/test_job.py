@@ -14,7 +14,7 @@ def main():
     gRun(testbed=testbed,
          trigger_uids=trigger_uids,
          trigger_datafile=os.path.join(DIR, "bgp_shut_trigger.yaml"),
-         devices=["POD5_R1", "POD5_R2"],
+         devices=["PODX_R1", "PODX_R2"],
          subsection_datafile=os.path.join(DIR, "subsections.yaml"))
 
 if __name__ == '__main__':

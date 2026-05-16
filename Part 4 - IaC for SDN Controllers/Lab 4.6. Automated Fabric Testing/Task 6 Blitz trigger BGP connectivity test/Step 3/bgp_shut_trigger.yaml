@@ -1,0 +1,116 @@
+# bgp_shut_trigger.yaml
+# Blitz trigger: Shut and restore a BGP neighbor, verify state transitions
+
+TriggerShutNoShutBgpNeighbor:
+  source:
+    pkg: genie.libs.sdk
+    class: triggers.blitz.blitz.Blitz
+
+  devices: ['PODX_R1', 'PODX_R2', 'CORE_SW1', 'CORE_SW2']
+
+  test_sections:
+
+    - ping_lisp_hosts:
+        - loop:
+            loop_variable_name: host_ip
+            value: []   # populated at runtime by test_job.py via blitz_helpers.collect_lisp_hosts()
+            actions:
+              - execute:
+                  device: CORE_SW1
+                  command: "ping %VARIABLES{host_ip} repeat 5"
+                  include:
+                    - "Success rate is 100 percent"
+              - execute:
+                  device: CORE_SW2
+                  command: "ping %VARIABLES{host_ip} repeat 5"
+                  include:
+                    - "Success rate is 100 percent"
+
+    # - parse_bgp_pre:
+    #     - parse:
+    #         device: PODX_R1
+    #         command: show bgp all summary
+    #         save:
+    #           - variable_name: bgp_summary_pre
+    #             filter: >-
+    #               ?(?val)
+    #           - variable_name: prefix_count_pre
+    #             filter: >-
+    #               raw("[vrf][default][neighbor][1.1.X.2][address_family][vpnv4 unicast][state_pfxrcd]")
+    #         continue: True
+
+    # - shut_bgp_neighbor:
+    #     - configure:
+    #         device: PODX_R1
+    #         command: |
+    #           router bgp 65505
+    #            address-family ipv4 vrf VN1
+    #             neighbor 1.1.X.2 shutdown
+
+    # - verify_neighbor_down:
+    #     - parse:
+    #         device: PODX_R1
+    #         command: show bgp all summary
+    #         save:
+    #           - variable_name: bgp_summary_post_shut
+    #         include:
+    #           - raw("[vrf][default][neighbor][1.1.X.2]")
+    #     - execute:
+    #         device: PODX_R1
+    #         command: show bgp all neighbors 1.1.X.2
+    #         include:
+    #           - "BGP state = Idle"
+    #           - "Administratively shut down"
+
+    # - wait_after_shut:
+    #     - sleep:
+    #         sleep_time: 5
+
+    # - noshut_bgp_neighbor:
+    #     - configure:
+    #         device: PODX_R1
+    #         command: |
+    #           router bgp 65505
+    #            address-family ipv4 vrf VN1
+    #             no neighbor 1.1.X.2 shutdown
+
+    # - wait_for_convergence:
+    #     - sleep:
+    #         sleep_time: 15
+
+    # - verify_neighbor_up:
+    #     - execute:
+    #         device: PODX_R1
+    #         command: show bgp all neighbors 1.1.X.2
+    #         include:
+    #           - "BGP state = Established"
+    #     - parse:
+    #         device: PODX_R1
+    #         command: show bgp all summary
+    #         save:
+    #           - variable_name: prefix_count_post
+    #             filter: >-
+    #               raw("[vrf][default][neighbor][1.1.X.2][address_family][vpnv4 unicast][state_pfxrcd]")
+    #         include:
+    #           - raw("[vrf][default][neighbor][1.1.X.2]")
+    #     - print:
+    #         item:
+    #           value: ">>>>> Prefix count PRE-shut: %VARIABLES{prefix_count_pre}  |  POST-restore: %VARIABLES{prefix_count_post} <<<<<"
+    #           type: string
+
+    # - diff_pre_post:
+    #     - diff:
+    #         device: PODX_R1
+    #         pre: "%VARIABLES{bgp_summary_pre}"
+    #         post: "%VARIABLES{bgp_summary_post_shut}"
+    #         exclude:
+    #           - MsgRcvd
+    #           - MsgSent
+    #           - TblVer
+    #           - InQ
+    #           - OutQ
+    #           - Up/Down
+    #     - diff:
+    #         device: PODX_R1
+    #         pre: "%VARIABLES{prefix_count_pre}"
+    #         post: "%VARIABLES{prefix_count_post}"
