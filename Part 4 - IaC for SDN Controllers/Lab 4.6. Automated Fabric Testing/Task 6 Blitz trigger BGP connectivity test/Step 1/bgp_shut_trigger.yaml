@@ -6,13 +6,13 @@ TriggerShutNoShutBgpNeighbor:
     pkg: genie.libs.sdk
     class: triggers.blitz.blitz.Blitz
 
-  devices: ['POD5_R1']
+  devices: ['PODX_R1']
 
   test_sections:
 
     - parse_bgp_pre:
         - parse:
-            device: POD5_R1
+            device: PODX_R1
             command: show bgp all summary
             save:
               - variable_name: bgp_summary_pre
@@ -20,28 +20,28 @@ TriggerShutNoShutBgpNeighbor:
                   ?(?val)
               - variable_name: prefix_count_pre
                 filter: >-
-                  raw("[vrf][default][neighbor][1.1.5.2][address_family][vpnv4 unicast][state_pfxrcd]")
+                  raw("[vrf][default][neighbor][1.1.X.2][address_family][vpnv4 unicast][state_pfxrcd]")
             continue: True
 
     - shut_bgp_neighbor:
         - configure:
-            device: POD5_R1
+            device: PODX_R1
             command: |
               router bgp 65505
                address-family ipv4 vrf VN1
-                neighbor 1.1.5.2 shutdown
+                neighbor 1.1.X.2 shutdown
 
     - verify_neighbor_down:
         - parse:
-            device: POD5_R1
+            device: PODX_R1
             command: show bgp all summary
             save:
               - variable_name: bgp_summary_post_shut
             include:
-              - raw("[vrf][default][neighbor][1.1.5.2]")
+              - raw("[vrf][default][neighbor][1.1.X.2]")
         - execute:
-            device: POD5_R1
-            command: show bgp all neighbors 1.1.5.2
+            device: PODX_R1
+            command: show bgp all neighbors 1.1.X.2
             include:
               - "BGP state = Idle"
               - "Administratively shut down"
@@ -52,11 +52,11 @@ TriggerShutNoShutBgpNeighbor:
 
     - noshut_bgp_neighbor:
         - configure:
-            device: POD5_R1
+            device: PODX_R1
             command: |
               router bgp 65505
                address-family ipv4 vrf VN1
-                no neighbor 1.1.5.2 shutdown
+                no neighbor 1.1.X.2 shutdown
 
     - wait_for_convergence:
         - sleep:
@@ -64,19 +64,19 @@ TriggerShutNoShutBgpNeighbor:
 
     - verify_neighbor_up:
         - execute:
-            device: POD5_R1
-            command: show bgp all neighbors 1.1.5.2
+            device: PODX_R1
+            command: show bgp all neighbors 1.1.X.2
             include:
               - "BGP state = Established"
         - parse:
-            device: POD5_R1
+            device: PODX_R1
             command: show bgp all summary
             save:
               - variable_name: prefix_count_post
                 filter: >-
-                  raw("[vrf][default][neighbor][1.1.5.2][address_family][vpnv4 unicast][state_pfxrcd]")
+                  raw("[vrf][default][neighbor][1.1.X.2][address_family][vpnv4 unicast][state_pfxrcd]")
             include:
-              - raw("[vrf][default][neighbor][1.1.5.2]")
+              - raw("[vrf][default][neighbor][1.1.X.2]")
         - print:
             item:
               value: ">>>>> Prefix count PRE-shut: %VARIABLES{prefix_count_pre}  |  POST-restore: %VARIABLES{prefix_count_post} <<<<<"
@@ -84,7 +84,7 @@ TriggerShutNoShutBgpNeighbor:
 
     - diff_pre_post:
         - diff:
-            device: POD5_R1
+            device: PODX_R1
             pre: "%VARIABLES{bgp_summary_pre}"
             post: "%VARIABLES{bgp_summary_post_shut}"
             exclude:
@@ -95,6 +95,6 @@ TriggerShutNoShutBgpNeighbor:
               - OutQ
               - Up/Down
         - diff:
-            device: POD5_R1
+            device: PODX_R1
             pre: "%VARIABLES{prefix_count_pre}"
             post: "%VARIABLES{prefix_count_post}"
