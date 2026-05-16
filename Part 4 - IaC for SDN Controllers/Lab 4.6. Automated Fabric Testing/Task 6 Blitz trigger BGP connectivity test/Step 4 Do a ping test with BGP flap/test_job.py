@@ -36,7 +36,7 @@ def main():
         gRun(testbed=testbed,
              trigger_uids=[ \
                  'FabricPingLispHosts_PreTest', \
-                 'TriggerShutNoShutBgpNeighbor_R1' \
+                 'TriggerShutNoShutBgpNeighbor' \
                  ],
              trigger_datafile=tmp_path,
              devices=["PODX_R1", "PODX_R2", "CORE_SW1", "CORE_SW2"],
