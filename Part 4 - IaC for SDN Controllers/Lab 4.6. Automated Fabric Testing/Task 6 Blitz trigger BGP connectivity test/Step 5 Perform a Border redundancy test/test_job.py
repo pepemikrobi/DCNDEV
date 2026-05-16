@@ -28,13 +28,33 @@ def main():
             section['ping_lisp_hosts'][0]['loop']['value'] = hosts
             break
 
+    for section in trigger_data['FabricPingLispHosts_PostTest']['test_sections']:
+        if 'ping_lisp_hosts' in section:
+            section['ping_lisp_hosts'][0]['loop']['value'] = hosts
+            break
+
+    for section in trigger_data['TriggerShutNoShutBgpNeighbor_R1']['test_sections']:
+        if 'ping_lisp_hosts' in section:
+            section['ping_lisp_hosts'][0]['loop']['value'] = hosts
+            break
+
+    for section in trigger_data['TriggerShutNoShutBgpNeighbor_R2']['test_sections']:
+        if 'ping_lisp_hosts' in section:
+            section['ping_lisp_hosts'][0]['loop']['value'] = hosts
+            break
+
     tmp_fd, tmp_path = tempfile.mkstemp(suffix='.yaml', dir=DIR)
     try:
         with os.fdopen(tmp_fd, 'w') as f:
             yaml.dump(trigger_data, f)
 
         gRun(testbed=testbed,
-             trigger_uids=['FabricPingLispHosts_PreTest', 'TriggerShutNoShutBgpNeighbor'],
+             trigger_uids=[ \
+                'FabricPingLispHosts_PreTest', \
+                'TriggerShutNoShutBgpNeighbor_R1', \
+                'TriggerShutNoShutBgpNeighbor_R2', \
+                'FabricPingLispHosts_PostTest', \
+            ],
              trigger_datafile=tmp_path,
              devices=["PODX_R1", "PODX_R2", "CORE_SW1", "CORE_SW2"],
              subsection_datafile=os.path.join(DIR, "subsections.yaml"))
