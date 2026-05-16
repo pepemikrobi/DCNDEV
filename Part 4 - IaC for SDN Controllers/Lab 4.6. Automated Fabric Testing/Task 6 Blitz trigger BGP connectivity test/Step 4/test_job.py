@@ -34,7 +34,7 @@ def main():
             yaml.dump(trigger_data, f)
 
         gRun(testbed=testbed,
-             trigger_uids=['FabricPingLispHosts_PreTest'],
+             trigger_uids=['FabricPingLispHosts_PreTest', 'TriggerShutNoShutBgpNeighbor'],
              trigger_datafile=tmp_path,
              devices=["PODX_R1", "PODX_R2", "CORE_SW1", "CORE_SW2"],
              subsection_datafile=os.path.join(DIR, "subsections.yaml"))
