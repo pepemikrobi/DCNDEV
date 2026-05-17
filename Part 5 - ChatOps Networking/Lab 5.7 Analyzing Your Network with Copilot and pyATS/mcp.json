@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "pyats": {
+      "command": "/home/podX/venv/pyats/bin/python",
+      "args": ["-u", "/home/podX/DCNDEV/aiops/fork-pyATS_MCP/pyats_mcp_server.py"],
+      "env": {
+        "PYATS_TESTBED_PATH": "/home/podX/DCNDEV/pyats/testbed.yaml"
+      }
+    }
+  }
+}
