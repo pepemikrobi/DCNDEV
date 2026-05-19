@@ -49,7 +49,7 @@
 
     - name: Install GitLab Runner Package
       ansible.builtin.apt:
-        name: gitlab-runner=17.4.2-1
+        name: gitlab-runner=18.11.3-1
         state: present
         force: true
         update_cache: true
