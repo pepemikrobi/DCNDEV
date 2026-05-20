@@ -69,6 +69,7 @@ tf_validate:
     - echo $CI_PIPELINE_SOURCE
     - echo $CI_COMMIT_BRANCH
     - cd TF_NETASCODE
+    - source /root/build/bin/activate    
     - pwd
     - chmod +x .init.sh
     - ./.init.sh
