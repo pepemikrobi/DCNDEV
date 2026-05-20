@@ -1,4 +1,4 @@
-FROM ubuntu:24.04.4
+FROM ubuntu:24.04
 
 RUN apt-get update && \ 
     apt-get upgrade -y && \
