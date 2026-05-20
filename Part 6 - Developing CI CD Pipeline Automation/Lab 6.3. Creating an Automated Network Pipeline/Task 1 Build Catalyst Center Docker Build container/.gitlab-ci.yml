@@ -1,6 +1,6 @@
 variables:
-  IMAGE_NAME_DNAC: $CI_REGISTRY_IMAGE/dnac  
-  IMAGE_TAG_DNAC: "1.0"
+  IMAGE_NAME_CATC_BUILD: $CI_REGISTRY_IMAGE/catc_build  
+  IMAGE_TAG_CATC_BUILD: "1.0"
 
 stages:
   - build
@@ -12,8 +12,8 @@ build_image:
   script:
     - echo $CI_COMMIT_BRANCH
     - echo $CI_REGISTRY_IMAGE
-    - echo $IMAGE_NAME_DNAC
-    - docker build -t $IMAGE_NAME_DNAC:$IMAGE_TAG_DNAC Docker/DNAC/.
+    - echo $IMAGE_NAME_CATC_BUILD
+    - docker build -t $IMAGE_NAME_CATC_BUILD:$IMAGE_TAG_CATC_BUILD Docker/catc_build/.
 
 push_image:
   stage: build
@@ -24,4 +24,4 @@ push_image:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker push $IMAGE_NAME_DNAC:$IMAGE_TAG_DNAC
+    - docker push $IMAGE_NAME_CATC_BUILD:$IMAGE_TAG_CATC_BUILD

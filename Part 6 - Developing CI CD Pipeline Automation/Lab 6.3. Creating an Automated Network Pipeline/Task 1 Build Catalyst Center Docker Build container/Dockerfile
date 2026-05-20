@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04.4
 
 RUN apt-get update && \ 
     apt-get upgrade -y && \
@@ -15,10 +15,9 @@ RUN . /root/ansible/bin/activate && \
     pip install urllib3 && \
     pip install requests && \
     pip install jmespath && \        
-    pip install ansible==10.7 && \
-    pip install dnacentersdk==2.7.7 && \
-    pip install pyats[full] && \ 
+    pip install ansible==13.5 && \
+    pip install dnacentersdk==2.8.6 && \
     pip install ansible-lint && \ 
-    ansible-galaxy collection install cisco.dnac
+    ansible-galaxy collection install cisco.dnac==6.33.2 
 COPY ./SDN_CA.crt /usr/local/share/ca-certificates/
 RUN update-ca-certificates

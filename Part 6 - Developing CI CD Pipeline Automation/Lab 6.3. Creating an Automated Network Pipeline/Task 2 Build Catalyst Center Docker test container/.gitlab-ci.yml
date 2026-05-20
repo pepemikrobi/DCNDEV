@@ -4,12 +4,6 @@ variables:
   IMAGE_TAG_CATC_BUILD: "1.0"
   IMAGE_TAG_CATC_TEST: "1.0"
 
-workflow:
-  rules:
-    - if: $CI_COMMIT_MESSAGE == "Update .gitlab-ci.yml file" || $CI_COMMIT_MESSAGE =~ "/#DONOTRUN/"
-      when: never
-    - when: always
-    
 stages:
   - build
 
