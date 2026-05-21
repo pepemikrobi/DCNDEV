@@ -1,8 +1,8 @@
 variables:
-  IMAGE_NAME_DNAC: $CI_REGISTRY_IMAGE/dnac  
-  IMAGE_NAME_ACI: $CI_REGISTRY_IMAGE/aci
-  IMAGE_TAG_DNAC: "1.0"
-  IMAGE_TAG_ACI: "1.0"
+  IMAGE_NAME_CATC_BUILD: $CI_REGISTRY_IMAGE/catc_build  
+  IMAGE_NAME_CATC_TEST: $CI_REGISTRY_IMAGE/catc_test   
+  IMAGE_TAG_CATC_BUILD: "1.1"
+  IMAGE_TAG_CATC_TEST: "1.0"
 
 workflow:
   rules:
@@ -24,7 +24,7 @@ workflow:
 
 stages:
   - build
-  - validate
+  - validate  
   - plan
   - apply
 
@@ -35,10 +35,10 @@ build_image:
   script:
     - echo $CI_COMMIT_BRANCH
     - echo $CI_REGISTRY_IMAGE
-    - echo $IMAGE_NAME_DNAC
-    - docker build -t $IMAGE_NAME_DNAC:$IMAGE_TAG_DNAC Docker/DNAC/.
-    - echo $IMAGE_NAME_ACI
-    - docker build -t $IMAGE_NAME_ACI:$IMAGE_TAG_ACI Docker/ACI/.
+    - echo $IMAGE_NAME_CATC_BUILD
+    - docker build -t $IMAGE_NAME_CATC_BUILD:$IMAGE_TAG_CATC_BUILD Docker/catc_build/.
+    - echo $IMAGE_NAME_CATC_TEST
+    - docker build -t $IMAGE_NAME_CATC_TEST:$IMAGE_TAG_CATC_TEST Docker/catc_test/.
 
 push_image:
   stage: build
@@ -49,11 +49,11 @@ push_image:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker push $IMAGE_NAME_DNAC:$IMAGE_TAG_DNAC
-    - docker push $IMAGE_NAME_ACI:$IMAGE_TAG_ACI
+    - docker push $IMAGE_NAME_CATC_BUILD:$IMAGE_TAG_CATC_BUILD
+    - docker push $IMAGE_NAME_CATC_TEST:$IMAGE_TAG_CATC_TEST
 
-# The tf_validate job in validate stage is used to check the HCL syntax
-tf_validate:
+# The nac_validate job in validate stage is used to check the NaC syntax
+nac_validate:
   stage: validate
   # The Docker image is required, the tag selects the docker runner
   # and the Docker image name is also provided
@@ -61,7 +61,7 @@ tf_validate:
     - push_image
   tags:
     - docker
-  image: $IMAGE_NAME_ACI:$IMAGE_TAG_ACI
+  image: $IMAGE_NAME_CATC_BUILD:$IMAGE_TAG_CATC_BUILD
   # Here the reference to the cache is used
   extends: .dependencies_cache
   cache:
@@ -71,13 +71,16 @@ tf_validate:
     - echo $CI_PIPELINE_SOURCE
     - echo $CI_COMMIT_BRANCH
     - cd TF_NETASCODE
+    - source /root/build/bin/activate
     - pwd
     - chmod +x .init.sh
     - ./.init.sh
-    - terraform version
+    - terraform version    
   # The main script here just invokes terraform validate
   script:
     - terraform validate
+    - yamllint ./data/
+    - nac-validate ./data/
   # The job should only start when the pipeline trigger is merge request
   # with three possible conditions: 
   # - source branch starts with feature and target branch is main
@@ -91,7 +94,6 @@ tf_validate:
           $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME == "staging" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"
         )
 
-
 # The tf_validate job in validate stage is used to check the HCL syntax
 tf_plan:
   stage: plan
@@ -101,7 +103,7 @@ tf_plan:
     - push_image
   tags:
     - docker
-  image: $IMAGE_NAME_ACI:$IMAGE_TAG_ACI
+  image: $IMAGE_NAME_CATC_BUILD:$IMAGE_TAG_CATC_BUILD
   # Here the reference to the cache is used
   extends: .dependencies_cache
   cache:
@@ -115,9 +117,9 @@ tf_plan:
     - pwd
     - chmod +x .init.sh
     - ./.init.sh
-    - export TF_VAR_aci_username=${ACI_USERNAME}
-    - export TF_VAR_aci_password=${ACI_PASSWORD}
-    - export TF_VAR_aci_url=${ACI_URL}
+    - export TF_VAR_catc_username=${CATC_USERNAME}
+    - export TF_VAR_catc_password=${CATC_PASSWORD}
+    - export TF_VAR_catc_url=${CATC_URL}
   # The main script here just invokes terraform plan
   script:
     - terraform plan -out ./output.tfplan
@@ -150,11 +152,9 @@ tf_apply:
   stage: apply
   # The Docker image is required, the tag selects the docker runner
   # and the Docker image name is also provided
-  needs:
-    - tf_plan
   tags:
     - docker
-  image: $IMAGE_NAME_ACI:$IMAGE_TAG_ACI
+  image: $IMAGE_NAME_CATC_BUILD:$IMAGE_TAG_CATC_BUILD
   # Here the reference to the cache is used
   extends: .dependencies_cache
   cache:
@@ -168,15 +168,15 @@ tf_apply:
     - pwd
     - chmod +x .init.sh
     - ./.init.sh
-    - export TF_VAR_aci_username=${ACI_USERNAME}
-    - export TF_VAR_aci_password=${ACI_PASSWORD}
-    - export TF_VAR_aci_url=${ACI_URL}
+    - export TF_VAR_catc_username=${CATC_USERNAME}
+    - export TF_VAR_catc_password=${CATC_PASSWORD}
+    - export TF_VAR_catc_url=${CATC_URL}
   # The main script here just invokes terraform plan
   # Save output to the file and then display
   script:
     - terraform apply -auto-approve | tee ./output.tfapply
 
-  # Generate artifacts based on plan output file
+  # Generate artifacts based on apply output
   artifacts:
     paths:
       - "./TF_NETASCODE/output.tfapply"
