@@ -1,14 +1,28 @@
+resource "dnacenter_area" "podX" {
+  provider = dnacenter
+  parameters {
+    site {
+      area {
+        name        = "PODX"
+        parent_name = "Global"
+      }
+    }
+    type = "area"
+  }
+}
+
 resource "dnacenter_area" "europe" {
     provider = dnacenter
     parameters {
         site {
             area {
             name        = "Europe"
-            parent_name = "Global"
+            parent_name = "Global/PODX"
             }
         }
         type = "area"
     }
+    depends_on = [ dnacenter_area.podX ]
 }
 
     resource "dnacenter_area" "poland" {
@@ -17,10 +31,11 @@ resource "dnacenter_area" "europe" {
         site {
             area {
             name        = "Poland"
-            parent_name = "Global/Europe"
+            parent_name = "Global/PODX/Europe"
             }
         }
     type = "area"
     }
     depends_on = [ dnacenter_area.europe ]
 }
+
