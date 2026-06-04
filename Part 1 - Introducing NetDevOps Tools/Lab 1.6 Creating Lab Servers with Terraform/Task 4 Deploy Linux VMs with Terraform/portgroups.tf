@@ -35,7 +35,7 @@ resource "vsphere_host_port_group" "srv12" {
 }
 
 data "vsphere_network" "oob_mgmt" {
-    name          = format("(110%s) SDN_POD%s_DC1 ", var.pod, var.pod)
+    name          = format("(110%s) SDN_POD%s_DC1", var.pod, var.pod)
     datacenter_id = data.vsphere_datacenter.datacenter.id
 }
 
