@@ -1,2 +1,2 @@
-aci_username = "podX"
-aci_url = "https://apic1.sdn.lab"
+catc_username = "admin"
+catc_url      = "https://podX-dnac.sdn.lab"

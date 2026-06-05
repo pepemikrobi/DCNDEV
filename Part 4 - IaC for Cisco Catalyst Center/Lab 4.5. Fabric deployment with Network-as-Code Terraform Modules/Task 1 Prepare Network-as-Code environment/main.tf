@@ -1,23 +1,23 @@
+module "nac" {
+    source  = "netascode/nac-catalystcenter/catalystcenter"
+    version = "0.4.2"
+
+    yaml_directories = ["data/"]
+}
+
 terraform {
     required_providers {
-        aci = {
-        source = "CiscoDevNet/aci"
+        catalystcenter = {
+            source  = "CiscoDevNet/catalystcenter"
+            version = "~> 0.5.11"
         }
     }
     backend "http" {
     }
 }
 
-provider "aci" {
-    username = var.aci_username
-    password = var.aci_password
-    url      = var.aci_url
-    insecure = true
-}
-
-module "aci" {
-    source  = "netascode/nac-aci/aci"
-
-    yaml_directories = ["data"]
-    manage_tenants = true
+provider "catalystcenter" {
+    username = var.catc_username
+    password = var.catc_password
+    url      = var.catc_url
 }

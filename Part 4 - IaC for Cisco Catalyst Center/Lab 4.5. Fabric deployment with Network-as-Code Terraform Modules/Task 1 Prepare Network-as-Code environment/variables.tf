@@ -1,11 +1,12 @@
-variable "aci_username" {
+variable "catc_username" {
     type = string
 }
 
-variable "aci_password" {
-    type = string
+variable "catc_password" {
+    type      = string
+    sensitive = true
 }
 
-variable "aci_url" {
+variable "catc_url" {
     type = string
 }
