@@ -35,7 +35,7 @@ catalyst_center:
       - name: PODX_R1.sdn.lab
         border_types:
           - LAYER_3
-        local_autonomous_system_number: 65505
+        local_autonomous_system_number: 6550X
         import_external_routes: true
         default_exit: true
         border_priority: 10
@@ -56,7 +56,7 @@ catalyst_center:
       - name: PODX_R2.sdn.lab
         border_types:
           - LAYER_3
-        local_autonomous_system_number: 65505
+        local_autonomous_system_number: 6550X
         import_external_routes: true
         default_exit: true
         border_priority: 10
