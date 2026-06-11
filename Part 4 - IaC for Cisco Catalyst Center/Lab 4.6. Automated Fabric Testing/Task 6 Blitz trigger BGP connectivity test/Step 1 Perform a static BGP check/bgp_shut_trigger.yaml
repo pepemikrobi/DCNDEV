@@ -27,7 +27,7 @@ TriggerShutNoShutBgpNeighbor:
         - configure:
             device: PODX_R1
             command: |
-              router bgp 65505
+              router bgp 6550X
                address-family ipv4 vrf VN1
                 neighbor 1.1.X.2 shutdown
 
