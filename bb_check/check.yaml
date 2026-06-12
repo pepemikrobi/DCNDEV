@@ -1,0 +1,27 @@
+---
+- name: Display DCNDEV folder contents on each host
+  hosts: all
+  # hosts: pod1
+  serial: 1
+  order: inventory
+  gather_facts: no
+  tasks:
+  - name: Header for this host (shell)
+    ansible.builtin.shell: |
+      printf '\n\n\n'
+      printf '\033[42m%s\n' '================================'
+      printf '  {{ inventory_hostname }}\n'
+      printf '\033[42m%s\033[0m\n' '================================'
+    changed_when: false
+
+  - name: List DCNDEV folder contents
+    shell: ls -lat  --color=always ~/DCNDEV/Ansible_DNAC
+    failed_when: false
+
+  - name: Run git status in DCNDEV folder
+    shell: git -c color.ui=always -C ~/DCNDEV status
+    failed_when: false
+
+  - name: Run git log with color
+    shell: git -C ~/DCNDEV log --graph --abbrev-commit --decorate   --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --color=always  --all
+    failed_when: false

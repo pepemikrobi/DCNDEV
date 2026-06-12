@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/inventory.json
+---
+all:
+    children:
+        pod1:
+            hosts:
+                1_#TBD:
+                    ansible_host: pod1-mgmt.sdn.lab
+                    ansible_user: pod1
+                    #ansible_ssh_pass: 
+                    ansible_connection: ssh
+        pod2:
+            hosts:
+                2_#TBD:
+                    ansible_host: pod2-mgmt.sdn.lab
+                    ansible_user: pod2
+                    #ansible_ssh_pass: 
+                    ansible_connection: ssh
+        pod3:
+            hosts:
+                3_#TBD:
+                    ansible_host: pod3-mgmt.sdn.lab
+                    ansible_user: pod3
+                    #ansible_ssh_pass: 
+                    ansible_connection: ssh
+        pod4:
+            hosts:
+                4_#TBD:
+                    ansible_host: pod4-mgmt.sdn.lab
+                    ansible_user: pod4
+                    #ansible_ssh_pass: 
+                    ansible_connection: ssh
+        pod5:
+            hosts:
+                5_#TBD:
+                    ansible_host: pod5-mgmt.sdn.lab
+                    ansible_user: pod5
+                    #ansible_ssh_pass: 
+                    ansible_connection: ssh
+
