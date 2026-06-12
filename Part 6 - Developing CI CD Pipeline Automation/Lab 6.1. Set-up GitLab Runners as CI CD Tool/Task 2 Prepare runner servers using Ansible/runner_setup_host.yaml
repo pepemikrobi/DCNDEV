@@ -49,7 +49,9 @@
 
     - name: Install GitLab Runner Package
       ansible.builtin.apt:
-        name: gitlab-runner=18.11.3-1
+        pkg:
+          - gitlab-runner=18.11.3-1
+          - gitlab-runner-helper-images=18.11.3-1
         state: present
         force: true
         update_cache: true
@@ -62,7 +64,7 @@
 
     - name: Copy CA ca-certificates
       ansible.builtin.copy:
-        src: "/home/pod{{ pod_no }}/SDN_CA.crt"
+        src: "~/SDN_CA.crt"
         dest: "/usr/local/share/ca-certificates/"
         owner: root
         group: root
