@@ -99,7 +99,6 @@
           fabric_device_data | selectattr('roles', 'defined')
           | selectattr('mgmt_ip', 'eq', item.mgmt_ip) | first
           }}
-        q: "[*].roles[?contains(@, 'BORDER_NODE')]"
       loop: |
         {{
           fabric_config | selectattr('roles', 'defined')
@@ -183,7 +182,6 @@
           fabric_device_data | selectattr('roles', 'defined')
           | selectattr('mgmt_ip', 'eq', item.mgmt_ip) | first
           }}
-        q: "[*].roles[?contains(@, 'BORDER_NODE')]"
       loop: |
         {{
           fabric_config | selectattr('roles', 'defined')
