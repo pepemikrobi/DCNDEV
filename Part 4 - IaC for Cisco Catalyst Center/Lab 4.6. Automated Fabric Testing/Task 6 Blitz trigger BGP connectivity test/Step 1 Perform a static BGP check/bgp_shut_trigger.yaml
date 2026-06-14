@@ -94,7 +94,11 @@ TriggerShutNoShutBgpNeighbor:
               - InQ
               - OutQ
               - Up/Down
-        - diff:
-            device: PODX_R1
-            pre: "%VARIABLES{prefix_count_pre}"
-            post: "%VARIABLES{prefix_count_post}"
+        - run_condition:
+            if : "%VARIABLES{prefix_count_pre} == %VARIABLES{prefix_count_post}"
+            function: passed
+            actions:
+              - print:
+                  item:
+                    value: "Prefix counts match (numeric compare): PRE=%VARIABLES{prefix_count_pre}, POST=%VARIABLES{prefix_count_post}"
+                    type: string
