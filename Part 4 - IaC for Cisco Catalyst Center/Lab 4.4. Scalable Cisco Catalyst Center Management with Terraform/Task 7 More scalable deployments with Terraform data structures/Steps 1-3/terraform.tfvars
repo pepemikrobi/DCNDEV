@@ -21,3 +21,20 @@ virtual_networks = {
         wireless_pool = true 
     }
 }
+
+test_fabric2_site = "SecretSite"
+
+test_fabric2_virtual_networks = {
+    "SECRET_VN_A" = { 
+        anycast_gw = "10.15.180.1/24" 
+    }
+    "VN_B" = { 
+        anycast_gw = "10.15.181.1/24", 
+        l2_flooding_enabled = true
+    }
+    "VN_C" = { 
+        anycast_gw = "10.15.152.1/24", 
+        l2_flooding_enabled = true,
+        wireless_pool = true 
+    }
+}
