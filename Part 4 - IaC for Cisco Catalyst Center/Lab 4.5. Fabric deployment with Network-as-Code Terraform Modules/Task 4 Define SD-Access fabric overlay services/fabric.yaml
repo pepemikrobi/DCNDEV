@@ -25,7 +25,7 @@ catalyst_center:
             l3_virtual_network: VN2
             auto_generate_vlan_name: false
             vlan_name: NET133-VN2        
-
+ 
     border_devices:
       - name: PODX_R1.sdn.lab
         border_types:
