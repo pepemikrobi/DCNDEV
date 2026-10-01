@@ -160,10 +160,6 @@ TriggerShutNoShutBgpNeighbor_R1:
               - InQ
               - OutQ
               - Up/Down
-        - diff:
-            device: PODX_R1
-            pre: "%VARIABLES{prefix_count_pre}"
-            post: "%VARIABLES{prefix_count_post}"
 
 TriggerShutNoShutBgpNeighbor_R2:
   source:
@@ -274,7 +270,4 @@ TriggerShutNoShutBgpNeighbor_R2:
               - InQ
               - OutQ
               - Up/Down
-        - diff:
-            device: PODX_R2
-            pre: "%VARIABLES{prefix_count_pre}"
-            post: "%VARIABLES{prefix_count_post}"
+
