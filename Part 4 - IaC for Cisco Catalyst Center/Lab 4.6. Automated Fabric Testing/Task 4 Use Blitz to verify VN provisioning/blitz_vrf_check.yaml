@@ -5,20 +5,20 @@ VrfCheck:
     pkg: genie.libs.sdk
     class: triggers.blitz.blitz.Blitz
   devices:
-    - POD5_R1
-    - POD5_R2
-    - POD5_SW1
-    - POD5_SW2
+    - PODX_R1
+    - PODX_R2
+    - PODX_SW1
+    - PODX_SW2
 
   test_sections:
     - verify_vrfs:
         - loop:
             loop_variable_name: device_name
             value:
-              - POD5_R1
-              - POD5_R2
-              - POD5_SW1
-              - POD5_SW2
+              - PODX_R1
+              - PODX_R2
+              - PODX_SW1
+              - PODX_SW2
             actions:
               - parse:
                   device: "%VARIABLES{device_name}"
