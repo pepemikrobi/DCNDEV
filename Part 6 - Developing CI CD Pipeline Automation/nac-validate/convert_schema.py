@@ -134,8 +134,8 @@ class SchemaConverter:
 
 
 def main():
-    schema_path = Path("/home/pod5/catalyst_center_schema.json")
-    output_path = Path("/home/pod5/DCNDEV/TF_NETASCODE/.schema.yaml")
+    schema_path = Path("/home/podX/catalyst_center_schema.json")
+    output_path = Path("/home/podX/DCNDEV/TF_NETASCODE/.schema.yaml")
 
     with open(schema_path, encoding="utf-8-sig") as f:
         json_schema = json.load(f)

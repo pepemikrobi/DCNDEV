@@ -3,7 +3,7 @@ from ollama import Client
 import sys
 
 tb = loader.load('../pyats/testbed.yaml')
-device = tb.devices['POD5_R1']
+device = tb.devices['PODX_R1']
 print('[pyats] Connecting to device...')
 device.connect()
 print('[pyats] Connected.')

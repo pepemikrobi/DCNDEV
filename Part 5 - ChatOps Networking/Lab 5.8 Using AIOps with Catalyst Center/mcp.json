@@ -9,7 +9,7 @@
     },
     "catc": {
       "command": "/home/podX/venv/pyats/bin/python",
-      "args": ["-u", "/home/podX/network_platforms_mcp_servers/catalyst_center_stdio.py"],
+      "args": ["-u", "/home/podX/fork-network_platforms_mcp_servers/catalyst_center_stdio.py"],
       "env": {
         "CC_PASS": "AdmeenXsisko"
       }
