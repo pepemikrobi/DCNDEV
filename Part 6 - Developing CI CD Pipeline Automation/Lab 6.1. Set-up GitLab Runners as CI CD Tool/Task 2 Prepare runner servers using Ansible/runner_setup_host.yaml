@@ -35,7 +35,7 @@
 
     - name: Update apt and install docker-ce
       ansible.builtin.apt:
-        name: docker-ce
+        name: docker-ce=29.6.2
         state: latest
         update_cache: true
 
